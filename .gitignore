@@ -22,7 +22,8 @@
 # *.pdf
 
 # Tex
-.tex
+main.tex
+pream.tex
 
 # VScode Settings
 .vscode/
