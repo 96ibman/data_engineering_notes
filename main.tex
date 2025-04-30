@@ -2,6 +2,10 @@
 \input{pream}
 \begin{document}
 \maketitle
+\section*{Disclaimer}
+
+These are my personal notes and are not official course documents. They may contain inaccuracies or omissions, hence, they should not be considered as a substitute for official course materials or as comprehensive preparation for examinations.
+
 \section*{Introduction and Basic Data Types}
 We call the data \textbf{Tabular} when there are no modelled dependencies between attributes, for example, demographic attributes such as age, gender, ZIP code, etc. (also called \textit{Nondependency-Oriented Data}). Otherwise it is \textbf{Non-Tabular}, e.g. social networks, time series, etc.
 
@@ -189,5 +193,189 @@ Each vertex \( u \in V \) maintains a list of its neighbors.
         \]
         \item In the adjacency matrix, \( A[u][v] \) stores the weight instead of a binary 0 or 1.
         \item In the adjacency list, each neighbor can be stored along with its edge weight as a tuple: \( (v, w(u, v)) \).
-    \end{itemize}    
+    \end{itemize}   
+    
+\section*{Conceptual Modeling}
+\textbf{ER Model: }Entity-Relationship Model is a high-level, conceptual framework to describe entities, their attributes, and the relationships between them.
+
+\textbf{Entity: }Basic concept of the Entity-Relationship (ER) model. It is an object in the real world. E.g. e1 (some employee).
+
+\textbf{Attribute: }Entities have attributes that are the properties that describe them.
+
+\textbf{Entity Type: }All entities that have the same entity type share the same attributes. E.g. EMPLOYEE (type), e1 (Entity).
+
+\textbf{Attribute Value: }A particular entity has a specific value for each of its attributes.
+
+\textbf{Composite: }An attribute is composite if it is described in terms of its smaller parts. E.g. Name, some databases consider name as a composite attribute consisting of two \textbf{atomic} attributes First Name and Last Name. 
+
+\textbf{Atomic/Simple: }Cannot be divided into smaller parts.
+
+\commandnote{
+    These days, we store \textbf{date} as a single value attribute of the type \textit{DATE}. Earlier, date was considered as a composite attribute consisting of atomic attributes \textit{day, month, year}.
+}
+
+\textbf{Derived: }An attribute is derived if its value is calculated using other \textbf{stored} attributes, e.g. age.
+
+\textbf{Stored: }An attribute is stored if it cannot be derived from other attributes.
+
+\commandnote{
+    Age is both derived and atomic. DateOfBirth is both composite and stored.
+}
+
+\textbf{Single-Valued: }An attribute is single-valued if it can have only one value. E.g. DateOfBirth is single-valued composite. Biological sex is single-valued atomic.
+
+\textbf{Multi-Valued }An attribute is multivalued if it can have several values. E.g. college degrees is multivalued atomic and can have BSc, MSc, BEng, etc.
+
+\commandnote{
+    Affiliation of an entity type RESEARCHER is multivalued (because one can have different affiliations) and composite because an affiliation could be represented as (Org. Name, Dept., Address, Role, Start Date, End Date).
+}
+
+\textbf{Entity Set: }Collection of entities of a particular entity type in a database in a given time point.
+
+\begin{tabular}{|l|l|} \hline
+    Entity Type & Blueprint/Description \\ \hline
+    Entity Set & Actual set of entities (entity instances) at a point in time \\ \hline
+\end{tabular}
+\commandnote{
+    In ancient logic and philosophy we refer to the definition or conceptual content of a term as an \textit{intension}. However, the set of actual things that satisfy a concept is called \textit{extension}. Hence, Entity Type is called intension, Entity Set is called extension.
+}
+
+\textbf{Candidate Key (Key Attribute): }A candidate key is an attribute (or set of attributes) that \textbf{uniquely} and \textbf{minimally} identifies each entity in an entity set. E.g. StudentID, studentEmail.
+
+\textbf{Primary Key: }A primary key is the chosen candidate key that will be used to uniquely identify entities in the database.
+
+\textbf{Foreign Key: }A foreign key is an attribute in one table/entity that references the primary key of another table/entity.
+It expresses a relationship between two entity sets.
+
+\textbf{Composite Primary Key: }
+A composite primary key is a primary key that consists of two or more attributes combined together to uniquely identify a record in a table. Neither attribute alone is sufficient to guarantee uniqueness — but together, they do. This is common in relationship tables, for example: enrollment relationship between students and courses (M:M):
+
+\begin{tabular}{|l|l|l|} \hline
+    StudentID & CourseID & Grade \\ \hline
+    101&CS101&A \\ \hline
+    101&MATH201&B \\ \hline
+    102&CS101&B+ \\ \hline
+\end{tabular}
+
+\textbf{Weak Entity Types: }Entity types without key attributes.
+
+\textbf{Strong Entity Types: }Entity types with key attributes.
+\subsection*{Relations}
+If we want to model 1:M or M:1 relations, we use the idea of foreign key (modeling the relation with single value attribute). Examples:
+
+\begin{tabular}{|l|l|} \hline
+    PersonID & PersonName \\ \hline
+    1&Alice\\ \hline
+    2&Bob \\ \hline
+\end{tabular}
+\begin{tabular}{|l|l|} \hline
+    categoryID & categoryName \\ \hline
+    1&Sport\\ \hline
+    2&Science \\ \hline
+\end{tabular}
+\begin{tabular}{|l|l|l|} \hline
+    catID & catName & ownerID \\ \hline
+    1&Daisy&1\\ \hline
+    2&Smart&2 \\ \hline
+    3&Sweet&1 \\ \hline
+\end{tabular}
+\begin{tabular}{|l|l|l|} \hline
+    articleID & title & categoryID \\ \hline
+    1&title&1\\ \hline
+    2&title&2 \\ \hline
+    3&title&1 \\ \hline
+\end{tabular}
+
+We model M:M Relations by creating an entity representing that relation (usually with composite primary key).
+
+\textbf{Relationship Type: }The definition / template / blueprint of the relationship
+
+\textbf{Relationship Instance: }A single actual link between entities
+
+\textbf{Relationship Set: } The collection of all relationship instances at a given time
+
+\textbf{Participation: }We say that entity types $E_1 \dots E_n$ participate in the \textbf{relationship type} $R$.
+
+\textbf{Relationship Degree: }Number of participating entity types in the relation. E.g. consider a relation SUPPLY that models which suppliers supply which projects and what parts are supplied, the degree here is 3 due the three entity types (SUPPLIER, PROJECT, PART).
+
+\textbf{Role Name: }The name describing the part an entity plays in a relationship.
+
+\textbf{Recursive Relationship: }A relationship where the same entity type participates more than once with different roles. E.g. SUPERVISION
+
+\textbf{Cardinality Ratio: }Specifies the maximum number of entities of one type that can be associated with an entity of another type in a relationship. Examples ($E_1$ BINARY\_RELATION $E_2$):
+
+Let $E_1$ and $E_2$ be the sets of entities of type $E_1$ and $E_2$, respectively. Let $R \subseteq E_1 \times E_2$ be the binary relation between them: $R = \{ (e_1, e_2) \mid e_1 \in E_1,\ e_2 \in E_2 \}$
+\begin{itemize}
+    \item \textbf{1:1 }each entity of type $E_1$ can be related to at most one entity of type $E_2$ and vice versa
+    \[
+    \forall e_1 \in E_1, \quad |\{ e_2 \in E_2 \mid (e_1, e_2) \in R \}| \leq 1
+    \]
+    \[
+    \forall e_2 \in E_2, \quad |\{ e_1 \in E_1 \mid (e_1, e_2) \in R \}| \leq 1
+    \]
+    \item \textbf{1:M }one entity of type $E_1$ can be related to many entities of type $E_2$. Each entity of type $E_2$ can be related to at most one entity of type $E_1$
+    \[
+        \forall e_1 \in E_1, \quad |\{ e_2 \in E_2 \mid (e_1, e_2) \in R \}| \geq 0
+        \]
+        \[
+        \forall e_2 \in E_2, \quad |\{ e_1 \in E_1 \mid (e_1, e_2) \in R \}| \leq 1
+    \]
+    \item \textbf{M:1 }Inverse of \textbf{1:M }
+    \[
+        \forall e_1 \in E_1, \quad |\{ e_2 \in E_2 \mid (e_1, e_2) \in R \}| \leq 1
+        \]
+        \[
+        \forall e_2 \in E_2, \quad |\{ e_1 \in E_1 \mid (e_1, e_2) \in R \}| \geq 0
+    \]
+    \item \textbf{M:M }many entities of type $E_1$ can be related to many entities of type $E_2$ and vice versa
+    \[
+        \forall e_1 \in E_1, \quad |\{ e_2 \in E_2 \mid (e_1, e_2) \in R \}| \geq 0
+        \]
+        \[
+        \forall e_2 \in E_2, \quad |\{ e_1 \in E_1 \mid (e_1, e_2) \in R \}| \geq 0
+    \]
+\end{itemize}
+
+\textbf{Total vs. Partial Participation}
+\begin{itemize}
+    \item \textbf{Total Participation of } $E_1$ in $R$ \\
+    $\forall e_1 \in E_1, \ \exists e_2 \in E_2 : (e_1, e_2) \in R$  
+    (Every entity of $E_1$ is related to at least one entity of $E_2$.)
+
+    \item \textbf{Partial Participation of } $E_1$ in $R$ \\
+    $\exists e_1 \in E_1: \forall e_2 \in E_2, (e_1, e_2) \notin R$  
+    (There exists an entity in $E_1$ that does not participate in $R$.)
+\end{itemize}
+
+\textbf{Migrating attributes from relations to entities:}
+\begin{itemize}
+    \item 1:1 relationship types: Attributes can be migrated to either participating entity. (e.g. EMP MANAGES DEPT, start\_date)
+    \item 1:N or N:1 relationship types: Attributes should be migrated to the entity that participates at most once. (e.g. EMP WORKS\_FOR DEPT, start\_date)
+    \item M:N relationship types: Attributes cannot be migrated to the participating entities and must remain on the relationship itself.
+\end{itemize}
+
+\textbf{Identifying Relationships: }a special relationship where a weak entity is identified by its relationship with a strong entity. The weak entity cannot exist without the strong entity, and the relationship plays a crucial role in providing the weak entity with a composite key.
+
+\textbf{Existence Dependency: }A weak entity depends on the strong entity for its existence. It cannot exist without being related to a strong entity.
+
+\commandnote{
+    A weak entity type has total participation in its identifying relationship. This means that every instance of the weak entity must be associated with at least one instance of the strong entity. If it doesn't, the weak entity doesn't exist ("existence dependency").
+}
+Example: 
+\begin{itemize}
+    \item Consider we have the following strong entities, customer, product.
+    \item To manage orders, we have two entities, order, orderItem.
+    \item Order is a strong entity since each order has its ID
+    \item However, OrderItem entity can have OrderID, LineNumber, ProductID, quantity, price, discount, etc.
+    \item In this case, OrderItem entity is a weak one, it cannot exist unless an order exists, therefore, the primary key is composite (OrderID, LineNumber)
+\end{itemize}
+
+\textbf{Min-Max Modeling: }Given an entity $E$ participating in Relation $R$. If at least \textit{min} and at most \textit{max} instances of $E$ must participate in $R$ with $\textit{min}>=0, \textit{max}>=1, \textit{max}>=\textit{min}$, then we say $E$ respects min-max constraint (\textit{min}, \textit{max}) w.r.t $R$.
+
+\minititle{ER Diagram}
+
+\begin{figure}[H]
+    \includegraphics[width=0.4\linewidth]{images/chens-notation-1.png}
+\end{figure}
 \end{document}
+
