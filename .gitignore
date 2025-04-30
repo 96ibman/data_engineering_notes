@@ -22,7 +22,7 @@
 # *.pdf
 
 # Tex
-*.tex
+#*.tex
 
 # VScode Settings
 .vscode/
