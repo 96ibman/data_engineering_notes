@@ -190,7 +190,7 @@ Each vertex \( u \in V \) maintains a list of its neighbors.
         \item In the adjacency matrix, \( A[u][v] \) stores the weight instead of a binary 0 or 1.
         \item In the adjacency list, each neighbor can be stored along with its edge weight as a tuple: \( (v, w(u, v)) \).
     \end{itemize}   
-    
+\newpage
 \section*{Conceptual Modeling}
 \mydef{ER Model}{Entity-Relationship Model is a high-level, conceptual framework to describe entities, their attributes, and the relationships between them.
 }
@@ -377,5 +377,112 @@ Example:
 \begin{figure}[H]
     \includegraphics[width=0.4\linewidth]{images/chens-notation-1.png}
 \end{figure}
+\newpage
+\section*{The Relational Data Model}
+\mydef{Set}{
+A set is a well-defined collection of distinct objects, considered as an object in its own right. The objects in a set are called elements or members. Sets are usually denoted by capital letters like $A$, $B$, or $S$, and elements are listed within curly braces. For example, $A = \set{1, 2, 3}$ is a set containing the numbers 1, 2, and 3.
+}
+
+\mydef{Element of a Set}{
+If $x$ is an element of set $A$, we write $x \in A$. If $x$ is not in $A$, we write $x \notin A$.
+}
+
+\mydef{Set-builder Notation}{
+Set-builder notation is a shorthand used to describe a set by stating the properties that its elements must satisfy.
+For example: $\set{x \in \mathbb{N} \mid x \text{ is even} }$ describes the set of even natural numbers.
+}
+
+\mydef{Cardinality}{
+The cardinality of a set is the number of elements in the set, denoted $|A|$.
+For example, if $A = \set{1, 2, 3}$, then $|A| = 3$.
+}
+
+\mydef{Cartesian Product} {
+Let $A$ and $B$ be sets, then $A \times B = \set{(a,b) \mid a \in A , b \in B}$, e.g. $A=\{1,2\}, B=\{x,y\}, A \times B = \set{(1,x),(1,y),(2,x),(2,y)}$
+}
+
+\mydef{Subset}{
+$A\subseteq B \Leftrightarrow \forall X. X\in A \Rightarrow X \in B$
+}
+
+\mydef{Proper Subset}{
+$A \subset B \Leftrightarrow A\subseteq B \land A \neq B$
+}
+
+\mydef{Relation}{
+$R \subseteq A \times B$. If $(a,b) \in R$, we say that $a$ is related to $b$ via $R$
+}
+
+\mydef{Left Total Relation}{
+A relation $R \subseteq A \times B$ is left total (total on $A$) iff each element in $A$ is related to at least on element in $B$. $\forall a \in A.  \exists b \in B. (a,b) \in R$
+}
+
+\mydef{Right Unique Relation}{
+A relation $R \subseteq A \times B$ is right unique iff each element in $A$ is related to at most one element in $B$. $\forall a\in A, \forall b1, b2 \in B, ((a,b1) \in R,(a,b2)\in R) \Rightarrow b1 = b2$
+}
+
+\mydef{Function}{
+A function is left total and right unique relation. $f:A \to B$
+}
+
+\mydef{Partial Function}{
+A partial function is a right unique relation, \textbf{not} necessarily left total. $f \rightharpoonup B$
+}
+
+\mydef{Set Union}{
+$x \in A \cup B \Leftrightarrow x \in A \text{ or }  x \in B$
+}
+
+\mydef{Set Intersection}{
+$x \in A \cap B \Leftrightarrow x \in A \text{ and } x \in B$
+}
+
+\mydef{Disjoint}{
+We say two sets $A,B$ are disjoint iff $A \cap B=\phi$
+}
+
+\mydef{Relation Schema}{A declaration $\textstyle R\bigl(A_1{:}D_1,\dots,A_n{:}D_n\bigr)$ consisting of a name $R$, a finite, non‑empty attribute set $\set{A_i}$ and, for each attribute, its domain $\operatorname{dom}(A_i)=D_i$.}
+
+\mydef{Schema Satisfaction}{A \emph{tuple} $t=(v_1,\dots,v_n)$ \emph{satisfies} the schema if $v_i\in D_i\;\forall i$.}
+
+\mydef{Types}{\textit{Classes} of atomic values that share representation and operations, e.g. \texttt{Int}, \texttt{Real}, or \texttt{String}.}
+
+\mydef{Domain}{A \textit{set} of atomic values with application‑specific semantics whose underlying implementation type is fixed.  Domains may define default values.  Example: $\textit{EmployeeAge}=\texttt{Int}[18,65]$.}
+
+\commandnote{Domain declaration examples: \texttt{Name = String(20)}, \texttt{DollarPrice = Decimal(5,2)}.}
+
+
+
+\mydef{Instance}{A \emph{finite set} of tuples that all satisfy a given relation schema.  While the schema is comparatively stable (static), its instance is \emph{dynamic}: it evolves through insertions, deletions, and updates.}
+
+\minititle{Two Equivalent Views on Tuples}
+
+\begin{itemize}
+    \item \textbf{Positional (Cartesian‑product) view:} $t$ is an \emph{ordered list} $\bigl(v_1,\dots,v_n\bigr)$.  Column order carries meaning; attribute names are implicit.
+    \item \textbf{Functional view:} Fix $A=\set{A_1,\dots,A_n}$ and $D=\bigcup_i D_i$.  Then a tuple is a \emph{function} $t:A\to D$ with $t(A_i)\in D_i$.  Here, order is irrelevant and attribute names are explicit.
+\end{itemize}
+
+\mydef{Domain Constraint}{Each attribute value must lie in its declared domain $D_i$.  Usually enforced by the DBMS type checker.}
+
+\mydef{Functional Dependency (FD)}{For attribute sets $X,Y\subseteq A$, the notation $X\to Y$ states: for any two tuples $t_1,t_2$, equality of $X$‑values implies equality of $Y$‑values.  Written out: $t_1[X]=t_2[X]\Rightarrow t_1[Y]=t_2[Y]$.}
+
+\mydef{Superkey}{An attribute set $K$ with $K\to A$ (it functionally determines the whole tuple).}
+
+\mydef{Candidate Key}{A \emph{minimal} superkey — removing any attribute from it destroys the functional determination of $A$.}
+
+\mydef{Primary Key}{The candidate key chosen by the database designer to serve as the principal identifier of tuples in a relation.  Remaining candidate keys are called \emph{alternate keys}.}
+
+% -- revised example ------------------------------------------------------
+\minititle{Example}
+\begin{itemize}
+    \item Relation schema $\textit{Employee}(\textit{EmpID},\textit{SSN},\textit{Email},\textit{Name},\textit{Dept})$.
+    \item \emph{Superkeys} include any attribute set that uniquely identifies tuples, e.g $\{\textit{EmpID}\},\;\{\textit{SSN}\},\;\{\textit{EmpID},\textit{Name}\}$. The third set still determines the whole tuple but is \emph{not} minimal.
+    \item \emph{Candidate keys}: the minimal superkeys $\{\textit{EmpID}\}\quad\text{and}\quad\{\textit{SSN}\}$. Each is irreducible.
+    \item \emph{Primary key}: suppose we designate $\textit{EmpID}$ as the primary key.  The other candidate becomes an \emph{alternate key} available for unique look‑ups.
+\end{itemize}
+
+\mydef{Foreign Key}{Attribute(s) in relation $R$ whose values must also appear as the primary-key values of another relation $S$ (ensuring referential integrity).}
+
+\commandnote{When an insertion, deletion or modification would break any constaint, the DBMS may (i) reject the change or (ii) repair it automatically (``cascade'', insert default/null, etc.).  The exact behaviour is part of the schema definition.}
 \end{document}
 
