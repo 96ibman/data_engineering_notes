@@ -16,13 +16,13 @@ Entity types are below:
 (**ID**, Substance, Brand, GenericName, Dosage, PkgSize)
 
 ## PRESCRIPTION
-(**ID**, PrescribedDrugID, PickedDrugID, OrdinanceDate, PickUpDate, DeliveryIntervals, VisitID)
+(**ID**, *PrescribedDrugID*, *PickedDrugID*, OrdinanceDate, PickUpDate, DeliveryIntervals, *VisitID*)
 
 ## DIAGNOSIS
-(**ID**, Description, ICD, VisitID)
+(**ID**, Description, ICD, *VisitID*)
 
 ## VISIT
-(**ID**, PatientID, HCP_ID, Date, CalendarQuarter, Telemedicine)
+(**ID**, *PatientID*, HCP_ID, Date, CalendarQuarter, Telemedicine)
 
 ## Relations
 - PATIENT-has-VISIT (1:M)
