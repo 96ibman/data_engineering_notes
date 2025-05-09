@@ -38,3 +38,10 @@ Entity types are below:
 
 ## To represent similar drugs
 SIMILAR_DRUGS(**OriginalDrugID, SimilarDrugID**)
+
+# Assignment 3 Assumptions
+- Patients can be registered without even visiting.
+- A prescription includes only one drug.
+- Each visit is associated with exactly one diagnosis and one prescription.
+- Diagnoses are predefined and include an ICD code.
+- Drugs are a predefined set.

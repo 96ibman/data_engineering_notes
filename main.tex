@@ -484,5 +484,93 @@ We say two sets $A,B$ are disjoint iff $A \cap B=\phi$
 \mydef{Foreign Key}{Attribute(s) in relation $R$ whose values must also appear as the primary-key values of another relation $S$ (ensuring referential integrity).}
 
 \commandnote{When an insertion, deletion or modification would break any constraint, the DBMS may (i) reject the change or (ii) repair it automatically (``cascade'', insert default/null, etc.).  The exact behaviour is part of the schema definition.}
+
+
+
+\subsection*{A word on modeling different cardinalities}
+Relational databases use foreign keys (FKs) to represent associations between entities. The modeling depends on the cardinality:
+
+\minititle{One-to-One (1:1)}
+A FK is placed in one of the tables, typically in the optional or dependent entity.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Person} & ID (PK) & Name & PassportID (FK) \\
+\hline
+ & 1 & Alice & 101 \\
+\hline
+\end{tabular}
+\quad
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Passport} & ID (PK) & Number & DateOfIssue \\
+\hline
+ & 101 & X1234 & 2020-01-01 \\
+\hline
+\end{tabular}
+\end{center}
+
+\minititle{One-to-Many (1:M) or Many-to-One (M:1)}
+The FK is placed in the table on the "many" side, referencing the "one" side.
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Department} & ID (PK) & Name \\
+\hline
+ & 1 & Human Resources \\
+\hline
+\end{tabular}
+\quad
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Employee} & ID (PK) & Name & DepartmentID (FK) \\
+\hline
+ & 101 & John & 1 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\end{center}
+
+\minititle{Many-to-Many (M:M)}
+Modeled via a relation table with two FKs, each referencing one of the related tables. The combination of FKs often serves as the primary key.
+
+\begin{center}
+    \begin{tabular}{|c|c|}
+    \hline
+    \textbf{StdID} & StdName \\
+    \hline
+    1 & Jane \\
+    2 & Mark \\
+    3 & Sara \\
+    \hline
+    \end{tabular}
+    \quad
+    \begin{tabular}{|c|c|}
+    \hline
+    \textbf{CourseID} & CourseTitle \\
+    \hline
+    10 & Database Systems \\
+    11 & Operating Systems \\
+    12 & Algorithms \\
+    \hline
+    \end{tabular}
+    \quad
+    \begin{tabular}{|c|c|}
+    \hline
+    \textbf{StdID} & \textbf{CourseID} \\
+    \hline
+    1 & 10 \\
+    1 & 12 \\
+    2 & 10 \\
+    2 & 11 \\
+    3 & 11 \\
+    \hline
+    \end{tabular}
+    \end{center}
+
 \end{document}
 
