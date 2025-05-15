@@ -6,7 +6,10 @@
 
 These are my personal notes and are not official course documents. They may contain inaccuracies or omissions, hence, they should not be considered as a substitute for official course materials or as comprehensive preparation for examinations.
 
-\section*{Introduction and Basic Data Types}
+\tableofcontents
+
+\clearpage
+\section{Introduction and Basic Data Types}
 We call the data \textbf{Tabular} when there are no modelled dependencies between attributes, for example, demographic attributes such as age, gender, ZIP code, etc. (also called \textit{Nondependency-Oriented Data}). Otherwise it is \textbf{Non-Tabular}, e.g. social networks, time series, etc.
 
 \textbf{Matrix Representation of Data}
@@ -191,7 +194,7 @@ Each vertex \( u \in V \) maintains a list of its neighbors.
         \item In the adjacency list, each neighbor can be stored along with its edge weight as a tuple: \( (v, w(u, v)) \).
     \end{itemize}   
 \newpage
-\section*{Conceptual Modeling}
+\section{Conceptual Modeling}
 \mydef{ER Model}{Entity-Relationship Model is a high-level, conceptual framework to describe entities, their attributes, and the relationships between them.
 }
 
@@ -378,7 +381,7 @@ Example:
     \includegraphics[width=0.4\linewidth]{images/chens-notation-1.png}
 \end{figure}
 \newpage
-\section*{The Relational Data Model}
+\section{The Relational Data Model}
 \mydef{Set}{
 A set is a well-defined collection of distinct objects, considered as an object in its own right. The objects in a set are called elements or members. Sets are usually denoted by capital letters like $A$, $B$, or $S$, and elements are listed within curly braces. For example, $A = \set{1, 2, 3}$ is a set containing the numbers 1, 2, and 3.
 }
@@ -491,7 +494,7 @@ We say two sets $A,B$ are disjoint iff $A \cap B=\phi$
 Relational databases use foreign keys (FKs) to represent associations between entities. The modeling depends on the cardinality:
 
 \minititle{One-to-One (1:1)}
-A FK is placed in one of the tables, typically in the optional or dependent entity.
+A FK is placed in one of the tables.
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|}
@@ -572,5 +575,154 @@ Modeled via a relation table with two FKs, each referencing one of the related t
     \end{tabular}
     \end{center}
 
+\newpage
+\section{Functional Dependencies}
+\mydef{Prime Attribute}{
+An attribute that is part of any candidate key.
+}
+
+\mydef{Nonprime Attribute}{
+An attribute that is not part of any candidate key.
+}
+
+\textbf{Example: }consider the simple relation \texttt{STUDENT(ID, Email, Name, Phone, CourseID)}. Possible super keys:
+\[
+\set{\texttt{ID}}, \set{\texttt{Email}}, \set{\texttt{ID}, \texttt{Name}}, \set{\texttt{ID}, \texttt{Email}, \texttt{Phone}}
+\]
+Only $\set{\texttt{ID}}$ and $\set{\texttt{Email}}$ are prime attributes.
+
+\mydef{Trivial FD}{
+We say that a functional dependency $X \to Y$ is \textbf{trivial} iff $Y \subseteq X$. 
+}
+
+\mydef{Full FD}{
+A functional dependency $X \to Y$ is full iff for any $A \in X$, $(X-\set{A}) \to Y$ does not hold, i.e. you cannot remove any attribute from $X$ without breaking the dependency. Example: $\{$studentID, CourseID$\} \to $ Grade.
+}
+
+\mydef{Partial FD}{
+A functional dependency $X \to Y$ is partial iff  $\exists A \in X$. $(X-\set{A}) \to Y$ holds.
+}
+
+
+\mydef{Transitive FD}{
+A functional dependency $X \to Y$ is transitive in a relation $R$ iff $\exists \textbf{ Nonprime set of attributes } Z \in R$ and both $X \to Z$ and $Z \to Y$ hold.
+}
+
+\mydef{Inference}{
+A functional dependency $X \to Y$ is \textbf{inferred} from a set of functional dependencies $F$ on a relation $R$ iff $X \to Y$ holds in every instance of $R$ that satisfies all dependencies in $F$
+}
+
+\minititle{Armstrong's Inference Rules for Functional Dependencies}
+\begin{itemize}
+    \item \textbf{IR1}: $(Y \subseteq X) \Rightarrow (X \to Y)$ (reflexive)
+    \item \textbf{IR2}: $(X \to Y) \Rightarrow (X \cup Z \to Y \cup Z)$ (augmentation) 
+    \item \textbf{IR3}: $((X \to Y) \land (Y \to Z)) \Rightarrow X \to Z$ (transitive) 
+\end{itemize}
+
+\mydef{Closure}{
+The closure of attribute set $X$ under a set of functional dependencies $F$, denoted as $X_F^+$ is the set of all attributes that $X$ can determine using FDs in $F$. $X_F^+ = \set{A \mid X \to A \in F \text{ or can be inferred from it}}$ 
+}
+
+\minititle{Closure Algorithm}
+\begin{itemize}
+    \item input: a set $F$ of FDs on a relation $R$, and a set of attributes $X$ contained in $R$
+    \item initialization: $X_F^+ = X$
+    \item changed = True
+    \item while changed:
+    \begin{enumerate}
+        \item changed = False
+        \item for each FD $Y \to Z \in F$:
+        \begin{enumerate}
+            \item If $(Y \subseteq X_F^+) \land (Z \notin X_F^+)$:
+            \begin{enumerate}
+                \item $X_F^+ = X_F^+ \cup \set{Z}$
+                \item changed = True
+            \end{enumerate}
+        \end{enumerate}
+    \end{enumerate}
+    \item Output: $X_F^+$
+\end{itemize}
+
+\mydef{FDs Verification}{
+$F \text{ implies }X \to Y \textit{ iff } Y \subseteq X_F^+$
+}
+
+\mydef{Superkeys Verification}{
+$X$ is a super key for $R$ with attribute set $U$ \textit{iff} $X_F^+ = U$
+}
+\newpage
+\minititle{Finding Candidate Keys}
+\begin{verbatim}
+Input: Relation (R) over set of attributes (U), set of FDs (F)
+initialization: K:= U
+minimal = False
+while not minimal
+    minimal = True
+    for each attribute A in K
+        compute closure of (K-A) under F
+            if the closure = U
+                set K := K - {A}
+                minimal = False
+Return: K
+\end{verbatim}
+
+\mydef{Coverage}{
+For any two sets of functional dependencies $F_1, F_2$, we say that $F_1$ covers $F_2$, \textit{iff}  $\forall X \to Y \in F_2. Y \subseteq X_{F_1}^+$.   
+}
+
+
+\mydef{Equivalence}{
+For any two sets of functional dependencies $F_1, F_2$, we say they are equivalent, \textit{iff} they cover each other.   
+}
+Example: verify whether the following FDs are equivalent.
+\begin{itemize}
+    \item $F_1=\set{A \to C, AC \to D, E \to AD, E \to H}$ and
+    \item $F_2 = \set{A \to CD, E \to AH}$
+\end{itemize}
+We check first if $F_1$ covers $F_2$
+\begin{itemize}
+    \item considering $A \to \set{C,D} \quad \set{C,D} \in A_{F_1}^+ = \set{A,C,D}$
+    \item considering $E \to \set{A,H} \quad \set{A,H} \in E_{F_1}^+ = \set{E,A,D,H,C}$
+    \item Hence $F_1$ covers $F_2$
+\end{itemize}
+
+Next, we check first if $F_2$ covers $F_1$
+\begin{itemize}
+    \item considering $A \to C \quad C \in A_{F_2}^+ = \set{C,D}$
+    \item considering $\set{A,C} \to D \quad D \in \set{A,C}_{F_2}^+ = \set{A,C,D}$
+    \item considering $E \to \set{A,D} \quad \set{A,D} \in E_{F_2}^+ = \set{A,H,C,D}$
+    \item considering $E \to H \quad H \in E_{F_2}^+ = \set{A,H,C,D}$
+    \item Hence $F_2$ covers $F_1$
+\end{itemize}
+
+Therefore, they are equivalent
+
+\mydef{Redundancy}{
+A functional dependency $f = X \to A$ is redundant in FDs set $F$ \textit{iff} $A \subseteq X_G^+$ where $G = F-\set{X \to A}$, i.e. $F - \set{f}$ implies $f$. 
+}
+
+\mydef{Extraneous}{
+Given a set $F$ of FDs and one $f=AX \to B \in F$, then $A$ is extraneous if $B \subseteq X_F^+$
+}
+
+
+\mydef{Minimal cover}{
+A set of FDs $F$ is a minimal cover of a set of FDs $E$ iff $F$ covers $E$ and there is no $f \in F. \quad F- \set{f}$ covers $E$
+}
+
+\mydef{Canonical}{
+    A functional dependency $f=X \to Y$ is in a canonical form iff $|Y|=1$
+}
+
+\mydef{Minimal set of FDs}{
+A set $F$ of FDs is minimal iff it satisfies the following conditions: (i) All FDs in a canonical form. (ii) No extraneous attributes. (iii) No redundant FDs.
+}
+
+\minititle{Steps to Obtain a Minimal Set of Functional Dependencies}
+\begin{enumerate}
+    \item Transform to Canonical form
+    \item Remove Extraneous Attributes
+    \item Remove Redundant FDs
+\end{enumerate}
 \end{document}
 
