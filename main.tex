@@ -724,5 +724,510 @@ A set $F$ of FDs is minimal iff it satisfies the following conditions: (i) All F
     \item Remove Extraneous Attributes
     \item Remove Redundant FDs
 \end{enumerate}
+
+\newpage
+\section{Relational Algebra and SQL}
+\mydef{Data Model}{
+    In relational databases, the data model specifies how data is structured and how it can be manipulated. i.e. it says that data is organized into tables (called relations) with columns (attributes) and rows (tuples).
+}
+
+\mydef{Relational model}{
+    In relational databases, the relational model represent data as relations (tables). Each relation has constraints, such as keys or data types, to ensure data integrity.
+}
+
+\mydef{Relational Algebra}{
+    The formal system for manipulating relations. It provides a theoretical foundation for \textbf{Query} operations used in relational databases
+}
+
+\mydef{Algebra}{
+    A formal system in which expressions are constructed using operators and atomic operands. These expressions can be evaluated, and two expressions are considered equivalent if they yield the same result for all possible values of their operands.
+}
+
+\mydef{Relational Algebra}{
+    A type of algebra where the operands are relations (tables), and the operators are defined for any instance of those relations. Operations can be combined to form complex expressions, and evaluating an expression produces a result schema (the structure of the output) and a result instance (the actual data produced).
+}
+
+\mydef{SQL}{
+    The Standard Query Language (SQL) is the language used to interact with relational databases. It is a \textbf{declarative} language, meaning that when you write a query, you describe what result you want, not how the database should compute it. This contrasts with procedural languages, where you must specify every step.
+}
+
+\minititle{SQL Structure}
+SQL is organized into several sub-languages, each serving a distinct purpose:
+\begin{itemize}
+    \item Data Definition Language (DDL): used to define or alter the structure of database objects. Commands used such as: \texttt{CREATE, ALTER, DROP}
+    \item Data Manipulation Language (DML): used to retrieve and manipulate data. Command used such as: \texttt{SELECT, UPDATE, INSERT, DELETE}
+    \item Data Control Language (DCL): manages user permissions and access control. Commands used such as: \texttt{GRANT, REVOKE}
+    \item Transaction Control Language (TCL): manages database transactions. Commands used such as: \texttt{COMMIT ROLLBACK}
+\end{itemize}
+
+Example DML Queries:
+\begin{verbatim}
+    SELECT name, age FROM Student WHERE age >= 18 ORDER BY name ASC;
+    
+    INSERT INTO Student (stdId, name, age) VALUES (101, "Alice", 20);
+    
+    UPDATE Student SET age = age + 1 WHERE stdId = 101;
+
+    DELETE FROM Student WHERE stdId = 101;
+\end{verbatim}
+
+Examples on \texttt{COUNT, DISTINCT, EXIST, IN}
+\begin{verbatim}
+    SELECT COUNT(*) FROM Student;
+
+    SELECT COUNT(DISTINCT stdID) FROM Student; 
+    
+    SELECT * FROM employees e
+    WHERE EXISTS (
+        SELECT 1
+        FROM bonus b
+        WHERE b.employee_id = e.employee_id
+    );
+
+    SELECT * FROM employees WHERE department_id IN (1, 2, 5);
+
+\end{verbatim}
+
+\newpage
+Example DDL Queries:
+\begin{verbatim}
+    CREATE TABLE Course (courceID INT PRIMARY KEY,
+                         title    VARCHAR(100)
+                        );
+
+    ALTER TABLE Course ADD COLUMN credits INT;
+
+    DROP TABLE Course;
+\end{verbatim}
+
+Example DCL Queries:
+\begin{verbatim}
+    GRANT SELECT, INSERT ON Student TO user1;
+
+    REVOKE INSERT ON Student FROM user1;
+\end{verbatim}
+
+Example TCL Queries:
+\begin{verbatim}
+    BEGIN;
+    UPDATE Account SET balance = balance - 100 WHERE id = 1;
+    COMMIT; 
+\end{verbatim}
+Example Primary Key and Foreign Key:
+\begin{verbatim}
+CREATE TABLE Department (
+    deptID INT PRIMARY KEY,
+    deptName VARCHAR(100)
+);
+
+CREATE TABLE Employee (
+    empID INT PRIMARY KEY,
+    empName VARCHAR(100),
+    deptID INT,
+    FOREIGN KEY (deptID) REFERENCES Department(deptID)
+);
+\end{verbatim}
+
+Example Composite Primary Key:
+\begin{verbatim}
+    CREATE TABLE Student (
+    stdID INT PRIMARY KEY,
+    stdName VARCHAR(100)
+);
+
+CREATE TABLE Course (
+    crsID INT PRIMARY KEY,
+    crsName VARCHAR(100)
+);
+
+CREATE TABLE Enrollment (
+    stdID INT,
+    crsID INT,
+    grade CHAR(2),
+    PRIMARY KEY (stdID, crsID),
+    FOREIGN KEY (stdID) REFERENCES Student(stdID),
+    FOREIGN KEY (crsID) REFERENCES Course(crsID)
+);
+\end{verbatim}
+
+Example Domain Constraints:
+\begin{verbatim}
+CREATE TABLE Product (
+    id INT PRIMARY KEY,
+    price DECIMAL(10,2) CHECK (price >= 0),
+    category VARCHAR(50) NOT NULL
+);
+\end{verbatim}
+
+\minititle{Set Operators}
+\mydef{Arity / Degree}{
+let $R(A_1, \cdots, A_n)$ be a relation schema, the arity of $R$ is $\text{arity}(R)=n$
+}
+
+\mydef{Union Compatible}{
+   We say that relations $R(A_1, \cdots, A_n)$ and $S(B_1, \cdots, B_n)$ are union compatible if $\text{artiy}(R) = \text{arity}(S)$ and $ \text{dom}(A_i)=\text{dom}(B_i) \quad \forall i \in \{1, \cdots, n\}$
+}
+
+\mydef{Relation Union}{$R_1 \cup R_2 = \set{t \mid t \in R_1 \lor t \in R_2}$. SQL Equiv.: \texttt{SELECT * FROM R UNION SELECT * FROM S}}
+
+
+
+\mydef{Relation Intersection}{$R_1 \cap R_2 = \set{t \mid t \in R_1 \land t \in R_2}$. SQL: \texttt{SELECT * FROM R INTERSECT SELECT * FROM S}}
+
+\mydef{Relation Difference}{$R_1 - R_2 = \set{t \mid t \in R_1 \land  t \notin R_2}$. SQL: \texttt{SELECT * FROM R EXCEPT SELECT * FROM S}}
+
+\mydef{Relation Cartesian Product}{
+$R_1 \times R_2 = \set{t_1 \circ t_2 \mid t_1 \in R_1,\ t_2 \in R_2}$. SQL: \texttt{SELECT * FROM R CROSS JOIN S}}
+
+\minititle{Relation Operators (Unary)}
+\mydef{Rename}{
+    Changes the schema of the relation $R$ by renaming attribute $A_1$ to $B_1$ and so on. $\rho_{(B1, \cdots, B_n \leftarrow A_1, \cdots, A_n)}(R)$. SQL: \texttt{SELECT a AS b FROM R AS R1}
+}
+
+\mydef{Selection}{
+  $\sigma_C(R) = \set{t \in R \mid C(t)}$ is the set of all tuples in $R$ that satisfy the condition $C$.\\
+  The condition $C$ is a Boolean expression composed of predicates:
+  \[
+  C = P_1\ \mathit{op}_1\ P_2\ \mathit{op}_2\ \cdots\ \mathit{op}_{n-1}\ P_n
+  \]
+  where each operator $\mathit{op}_i \in \{\text{AND},\ \text{OR},\ \text{NOT}\}$, and each predicate $P_i$ has the form:
+  \[
+  P_i ::= A\ \theta\ B \quad \text{or} \quad A\ \theta\ c
+  \]
+  with attributes $A$, $B$, constant $c$, and comparison operator $\theta \in \{=,\ <,\ \leq,\ >,\ \geq,\ \neq\}$.
+}
+
+SQL Equiv. : \texttt{SELECT * FROM R WHERE C}
+
+\mydef{Projection}{
+    $\Pi_Y(R) = \set{t[Y] \mid t \in R}$. SQL: \texttt{SELECT Y FROM R}
+}
+
+\mydef{Idempotent}{
+  An operator $\mathcal{O}$ is called \emph{idempotent} if applying it multiple times has the same effect as applying it once: $\mathcal{O}(\mathcal{O}(x)) = \mathcal{O}(x) \quad \forall x$. \textbf{Projection} is \textit{Idempotent}
+}
+
+
+\minititle{Relation Operators (Binary)}
+\mydef{Theta Join}{
+    $R_1 \Join_C R_2 = \set{t_1 \circ t_2 \mid t_1 \in R_1 \land t_2 \in R_2 \land C(t_1 \circ t_2)} = \sigma_C(R_1 \times R_2)$
+}
+
+\textbf{Example:} \texttt{SELECT * FROM Employee JOIN Bonus ON Employee.salary > Bonus.threshold}
+\[
+\begin{array}{ccc}
+\begin{tabular}{|c|c|}
+\hline
+id & salary \\
+\hline
+1 & 50000 \\
+2 & 30000 \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|}
+\hline
+threshold \\
+\hline
+20000 \\
+40000 \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|c|}
+\hline
+id & salary & threshold \\
+\hline
+1 & 50000 & 20000 \\
+1 & 50000 & 40000 \\
+2 & 30000 & 20000 \\
+\hline
+\end{tabular}
+\end{array}
+\]
+
+\mydef{Equi-Join}{
+    Theta Join with $C$ consists only of equality comparison.
+}
+
+\textbf{Example:} \texttt{SELECT * FROM Orders JOIN Customers ON Orders.cust\_id = Customers.id}
+
+\[
+\begin{array}{ccc}
+\begin{tabular}{|c|c|}
+\hline
+order\_id & cust\_id \\
+\hline
+101 & 1 \\
+102 & 2 \\
+103 & 4 \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|}
+\hline
+id & name \\
+\hline
+1 & Alice \\
+2 & Bob \\
+3 & Carol \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|c|c|}
+\hline
+order\_id & cust\_id & id & name \\
+\hline
+101 & 1 & 1 & Alice \\
+102 & 2 & 2 & Bob \\
+\hline
+\end{tabular}
+\end{array}
+\]
+
+\mydef{Natural Join}{
+    Equi-Join where $C$ is quality on common attributes and duplicate common attributes are removed from the result.
+}
+
+\textbf{Example: }\texttt{SELECT * FROM Employee NATURAL JOIN Department}
+\[
+\begin{array}{ccc}
+\begin{tabular}{|c|c|}
+\hline
+emp\_id & dept\_id \\
+\hline
+1 & 10 \\
+2 & 20 \\
+3 & 10 \\
+4 & 40 \\
+5 & 50 \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|}
+\hline
+dept\_id & name \\
+\hline
+10 & HR \\
+20 & IT \\
+30 & Sales \\
+60 & Legal \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|c|}
+\hline
+emp\_id & dept\_id & name \\
+\hline
+1 & 10 & HR \\
+2 & 20 & IT \\
+3 & 10 & HR \\
+\hline
+\end{tabular}
+\end{array}
+\]
+
+\mydef{Outer Join}{
+    Natural Join but preserves unmatched tuples by padding them with NULL values. That can be done on the relation on the left, right or both.
+}
+
+\mydef{Left Outer Join}{
+    Includes all tuples from the left relation, padding unmatched right-side tuples with NULLS.
+}
+
+\textbf{Example: }\texttt{SELECT * FROM Orders LEFT OUTER JOIN Customers ON Orders.cust\_id = Customers.id}
+\[
+\begin{array}{ccc}
+\begin{tabular}{|c|c|}
+\hline
+order\_id & cust\_id \\
+\hline
+101 & 1 \\
+102 & 2 \\
+103 & 4 \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|}
+\hline
+id & name \\
+\hline
+1 & Alice \\
+2 & Bob \\
+3 & Carol \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|c|c|}
+\hline
+order\_id & cust\_id & id & name \\
+\hline
+101 & 1 & 1 & Alice \\
+102 & 2 & 2 & Bob \\
+103 & 4 & \text{NULL} & \text{NULL} \\
+\hline
+\end{tabular}
+\end{array}
+\]
+
+\mydef{Right Outer Join}{
+    Includes all tuples from the right relation, padding unmatched left-side tuples with NULLS.
+}
+
+\textbf{Example: }\texttt{SELECT * FROM Orders RIGHT OUTER JOIN Customers ON Orders.cust\_id = Customers.id}
+\[
+\begin{array}{ccc}
+\begin{tabular}{|c|c|}
+\hline
+order\_id & cust\_id \\
+\hline
+101 & 1 \\
+102 & 2 \\
+103 & 4 \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|}
+\hline
+id & name \\
+\hline
+1 & Alice \\
+2 & Bob \\
+3 & Carol \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|c|c|}
+\hline
+order\_id & cust\_id & id & name \\
+\hline
+101 & 1 & 1 & Alice \\
+102 & 2 & 2 & Bob \\
+\text{NULL} & \text{NULL} & 3 & Carol \\
+\hline
+\end{tabular}
+\end{array}
+\]
+
+\mydef{Full Outer Join}{
+    Includes all tuples from both relations, padding unmatched tuples from either side with NULLS.
+}
+\textbf{Example: }\texttt{SELECT * FROM Orders FULL OUTER JOIN Customers ON Orders.cust\_id = Customers.id}
+\[
+\begin{array}{ccc}
+\begin{tabular}{|c|c|}
+\hline
+order\_id & cust\_id \\
+\hline
+101 & 1 \\
+102 & 2 \\
+103 & 4 \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|}
+\hline
+id & name \\
+\hline
+1 & Alice \\
+2 & Bob \\
+3 & Carol \\
+\hline
+\end{tabular}
+&
+\begin{tabular}{|c|c|c|c|}
+\hline
+order\_id & cust\_id & id & name \\
+\hline
+101 & 1 & 1 & Alice \\
+102 & 2 & 2 & Bob \\
+103 & 4 & \text{NULL} & \text{NULL} \\
+\text{NULL} & \text{NULL} & 3 & Carol \\
+\hline
+\end{tabular}
+\end{array}
+\]
+
+\minititle{Operators Properties}
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|c|c|c|c|}
+\hline
+\textbf{Operator} & \textbf{Result Schema} & \textbf{Result Size} & \textbf{Comm.} & \textbf{Assoc.} & \textbf{Idem.} & \textbf{Duplicates} \\
+\hline
+Union & Same as inputs & $\leq |R| + |S|$ & Yes & Yes & No & No \\
+\hline
+Intersection & Same as inputs & $\leq \min(|R|, |S|)$ & Yes & Yes & Yes & No \\
+\hline
+Difference & Same as $R$ & $\leq |R|$ & No & No & No & No \\
+\hline
+Cartesian Product & $R \cup S$ & $|R| \cdot |S|$ & Yes & Yes & No & Yes \\
+\hline
+Rename & Same & $|R|$ & N/A & N/A & N/A & N/A \\
+\hline
+Selection & Same as $R$ & $\leq |R|$ & Yes & Yes & No & Yes \\
+\hline
+Projection & Subset of $R$ & $\leq |R|$ & No & No & Yes & No \\
+\hline
+Theta Join & $R \cup S$ & $[0,\ |R| \cdot |S|]$ & No & No & No & Yes \\
+\hline
+Equi-Join     & $R \cup S$ & $[0,\ |R| \cdot |S|]$ & No & No & No & Yes \\
+\hline
+Natural Join & $R \cup S\setminus C$ & $[0,\ |R| \cdot |S|]$ & Yes & Yes & No & Yes \\
+\hline
+Left Outer Join & $R \cup S$ & $\geq |R|$ & No & No & No & Yes \\
+\hline
+Right Outer Join & $R \cup S$ & $\geq |S|$ & No & No & No & Yes \\
+\hline
+Full Outer Join & $R \cup S$ & $\geq \max(|R|, |S|)$ & No & No & No & Yes \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\minititle{Common Datatypes}
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Category} & \textbf{Common Data Types} \\ \hline
+Numeric           & INT, BIGINT, DECIMAL(p,s), FLOAT, DOUBLE \\ \hline
+Character         & CHAR(n), VARCHAR(n), TEXT                 \\ \hline
+Date/Time         & DATE, TIME, TIMESTAMP, DATETIME           \\ \hline
+Boolean           & BOOLEAN / BOOL                             \\ \hline
+\end{tabular}
+\end{table}
+
+\newpage
+\minititle{Algebra to SQL Example}
+\[
+\pi_{\text{supplier\_name},\ \text{product\_name}} \left(
+  \sigma_{\text{price} > 50} \left(
+    \left(
+      \text{Suppliers} \bowtie_{\text{supplier\_id}} \text{Products}
+    \right)
+    \bowtie_{\text{category\_id}} \text{Categories}
+  \right)
+\right)
+\]
+
+\begin{verbatim}
+WITH SupplierProducts AS (
+    SELECT 
+        s.supplier_name, 
+        p.product_name, 
+        p.price, 
+        p.category_id
+    FROM Suppliers s
+    JOIN Products p ON s.supplier_id = p.supplier_id
+),
+Filtered AS (
+    SELECT * FROM SupplierProducts WHERE price > 50
+)
+SELECT f.supplier_name, f.product_name
+FROM Filtered f
+JOIN Categories c ON f.category_id = c.category_id;
+\end{verbatim}
+
 \end{document}
 
