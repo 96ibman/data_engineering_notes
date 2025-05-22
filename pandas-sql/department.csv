@@ -1,0 +1,7 @@
+department_id,department_name,location,avg_salary
+1,Engineering,New York,71000.0
+2,Human Resources,Boston,69000.0
+3,Marketing,Chicago,68500.0
+4,Finance,San Francisco,75000.0
+5,IT,Seattle,71000.0
+6,Legal,Denver,

@@ -1,0 +1,4 @@
+bonus_id,threshold,bonus_amount,description
+1,60000,1000,Base Performer
+2,70000,2000,High Performer
+3,80000,3000,Top Performer

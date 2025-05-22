@@ -1,0 +1,5 @@
+employee_id,first_name,last_name,email,salary,department_id
+101,John,Doe,john.doe@example.com,70000,1
+102,Jane,Smith,jane.smith@example.com,65000,2
+103,Emily,Johnson,emily.johnson@example.com,72000,1
+104,Michael,Brown,michael.brown@example.com,68000,3
