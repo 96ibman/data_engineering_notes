@@ -1229,5 +1229,1085 @@ FROM Filtered f
 JOIN Categories c ON f.category_id = c.category_id;
 \end{verbatim}
 
+\newpage
+\section{Normal Forms}
+\mydef{Normalization}{
+    Decomposing a large schema $R(A)$ into smaller schemata $R_i(A_i)$ with $A_i \subset A$ to minimize redundancy, avoid information loss and preserve functional dependencies.
+}
+
+\mydef{Spurious Tuples}{
+   Decomposing a relation into multiple relations as part of normalization can lead to spurious tuples when these relations are rejoined (tuples that did not exist in the original relation).
+}
+\textbf{Example}
+\begin{figure}[H]
+    \includegraphics[width=0.3\linewidth]{images/supurious.png}
+\end{figure}
+
+\mydef{Lossless-Join Decomposition}{
+    We call a decomposition of $R(A,B,C)$ into $R_1(A,B)$ and $R_2(B,C)$ lossless-join iff, for all instances $r$ of $R$ that respect the FDs, the following identity holds: $r = \Pi_{A,B}(r) \Join \Pi_{B,C}(r)$
+}
+
+\textbf{Example (Lossless): }Consider the relation: \texttt{empDept(empID, name, deptID, deptName)} with FDs: 
+\begin{align*}
+\texttt{empID} &\to \texttt{name} \\
+\texttt{empID} &\to \texttt{deptID} \\
+\texttt{deptID} &\to \texttt{deptName}
+\end{align*}
+
+We decompose the relation into:
+\begin{itemize}
+  \item \texttt{emp(empID, name, deptID)}
+  \item \texttt{dept(deptID, deptName)}
+\end{itemize}
+Consider legal instances $r$:
+\begin{tabular}{cccc}
+\toprule
+\textbf{empID} & \textbf{name} & \textbf{deptID} & \textbf{deptName} \\
+\midrule
+1 & Alice & 10 & CS \\
+2 & Bob & 10 & CS \\
+3 & Carol & 20 & Math \\
+\bottomrule
+\end{tabular}
+
+$\Pi_{\text{empID, name, deptID}}(r)$
+\begin{tabular}{ccc}
+\toprule
+\textbf{empID} & \textbf{name} & \textbf{deptID} \\
+\midrule
+1 & Alice & 10 \\
+2 & Bob & 10 \\
+3 & Carol & 20 \\
+\bottomrule
+\end{tabular}
+
+$\Pi_{\text{deptID, deptName}}(r)$
+\begin{tabular}{cc}
+\toprule
+\textbf{deptID} & \textbf{deptName} \\
+\midrule
+10 & CS \\
+20 & Math \\
+\bottomrule
+\end{tabular}
+
+$\Pi_{\text{deptID, deptName}}(r) \Join \Pi_{\text{deptID, deptName}}(r)$
+\begin{tabular}{cccc}
+\toprule
+\textbf{empID} & \textbf{name} & \textbf{deptID} & \textbf{deptName} \\
+\midrule
+1 & Alice & 10 & CS \\
+2 & Bob & 10 & CS \\
+3 & Carol & 20 & Math \\
+\bottomrule
+\end{tabular}
+$=r$
+
+\textbf{Example (Lossy): }Consider the relation: \texttt{R(empName, empLevel, empSalary)} with FDs: 
+\begin{align*}
+\texttt{empName} &\to \texttt{empLevel} \\
+\texttt{empName} &\to \texttt{empSalary} \\
+\texttt{empLevel} &\to \texttt{empSalary}
+\end{align*}
+
+Consider legal instances $r$:
+\begin{tabular}{ccc}
+\toprule
+\textbf{empName} & \textbf{empLevel} & \textbf{empSalary} \\
+\midrule
+Alice & Junior & 50K \\
+Bob   & Junior & 50K \\
+Carol & Senior & 50K \\
+\bottomrule
+\end{tabular}
+
+$\Pi_{\text{empName, empSalary}}(r)$
+\begin{tabular}{cc}
+\toprule
+\textbf{empName} & \textbf{empSalary} \\
+\midrule
+Alice & 50K \\
+Bob   & 50K \\
+Carol & 50K \\
+\bottomrule
+\end{tabular}
+
+$\Pi_{\text{empLevel, empSalary}}(r)$
+\begin{tabular}{cc}
+\toprule
+\textbf{Level} & \textbf{Salary} \\
+\midrule
+Junior & 50K \\
+Senior & 50K \\
+\bottomrule
+\end{tabular}
+
+$\Pi_{\text{empName, empSalary}}(r) \Join \Pi_{\text{empLevel, empSalary}}(r)$
+
+\begin{tabular}{ccc}
+\toprule
+\textbf{empName} & \textbf{empLevel} & \textbf{empSalary} \\
+\midrule
+Alice & Junior & 50K \\
+Alice & Senior & 50K \\
+Bob   & Junior & 50K \\
+Bob   & Senior & 50K \\
+Carol & Junior & 50K \\
+Carol & Senior & 50K \\
+\bottomrule
+\end{tabular}
+$\neq r$
+
+\commandnote{
+    A decomposition of $R(A,B,C)$ into $R_1(A,B)$ and $R_2(B,C)$ is lossless-join iff $B$ is a \textbf{superkey} in $R_1$ \textit{or} $R_2$
+}
+
+\mydef{Dependency-Preserving}{
+    We call a decomposition dependency preserving if the \textit{union} of FDs from decomposed relations yields all FDs in the original relation.
+}
+
+\textbf{Example: }If we decompose \texttt{R(empName, empLevel, empSalary)} into \texttt{R1(empName, empLevel), R2(empName, empSalary)}. This is a \textbf{lossless-join} decomposition:
+
+$\Pi_{\text{empName, empLevel}}(r)$
+\begin{tabular}{cc}
+\toprule
+\textbf{empName} & \textbf{empLevel} \\
+\midrule
+Alice & Junior \\
+Bob   & Junior \\
+Carol & Senior \\
+\bottomrule
+\end{tabular}
+
+$\Pi_{\text{empName, empSalary}}(r)$
+\begin{tabular}{cc}
+\toprule
+\textbf{empName} & \textbf{Salary} \\
+\midrule
+Alice & 50K \\
+Bob   & 50K \\
+Carol & 50K \\
+\bottomrule
+\end{tabular}
+
+$\Pi_{\text{empName, empLevel}}(r) \Join \Pi_{\text{empName, empSalary}}(r)$
+
+\begin{tabular}{ccc}
+\toprule
+\textbf{empName} & \textbf{empLevel} & \textbf{empSalary} \\
+\midrule
+Alice & Junior & 50K \\
+Bob   & Junior & 50K \\
+Carol & Senior & 50K \\
+\bottomrule
+\end{tabular}
+$=r$
+
+\textbf{However, }This is not \textit{dependency preserving}. Proof:
+
+FDs of $R_1 = \set{\texttt{empName} \to \texttt{empLevel}}$
+
+FDs of $R_2 = \set{\texttt{empName} \to \texttt{empSalary}} $
+
+The union of both is $\set{\texttt{empName} \to \texttt{empLevel}, \texttt{empName} \to \texttt{empSalary}}$ which is not equal to $\set{\texttt{empName} \to \texttt{empLevel},
+\texttt{empName} \to \texttt{empSalary},
+\texttt{empLevel} \to \texttt{empSalary}}$
+i.e. the FD $\texttt{empLevel} \to \texttt{empSalary}$ is \textbf{lost}!
+
+\textbf{Example (Lossless-join and Dependency Preserving Decomposition)}
+
+$R_1(empName, empLevel), R_2(empLevel, empSalary)$
+\begin{itemize}
+    \item Lossless-join becasue \texttt{empLevel} is superkey in $R_2$
+    \item Dependency Preserving becasue $F_1 \cup F_2 = \set{{empName} \to \texttt{empLevel}, \texttt{empLevel} \to \texttt{empSalary}}$ and \textit{through transitivity} we get $\set{{empName} \to \texttt{empSalary}}$
+\end{itemize}
+
+\minititle{The Chase Test to Check the Lossless-Join Property}
+\textbf{Input:}
+\begin{itemize}
+    \item A relation schema \( R = \{A_1, A_2, \dots, A_n\} \)
+    \item A set of functional dependencies \( F \)
+    \item A decomposition \( \mathcal{D} = \{R_1, R_2, \dots, R_k\} \)
+\end{itemize}
+
+\textbf{Goal:} Determine whether the decomposition is \textbf{lossless-join} with respect to \( F \).
+
+\bigskip
+
+\textbf{Procedure:}
+\begin{enumerate}[label=\textbf{Step \arabic*.}, leftmargin=2.5em]
+    \item \textbf{Initialize a Chase Table:}
+    \begin{itemize}
+        \item Create a table with one row per sub-relation \( R_i \in \mathcal{D} \), and one column per attribute \( A_j \in R \).
+        \item For each row \( i \) and attribute \( A_j \):
+        \begin{itemize}
+            \item If \( A_j \in R_i \), set the cell to \( \alpha_{A_j} \)
+            \item If \( A_j \notin R_i \), set the cell to a unique symbol \( \beta_{iA_j} \)
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Apply Functional Dependencies:}
+    \begin{itemize}
+        \item For each FD \( X \to Y \in F \), and for each row:
+        \begin{itemize}
+            \item If all attributes in \( X \) have the same symbol in the row (e.g., all equal to \( \sigma \)),
+            \item Then set each attribute in \( Y \) to that same symbol \( \sigma \)
+        \end{itemize}
+        \item Repeat until no further changes occur in the table.
+    \end{itemize}
+    
+    \item \textbf{Check for Losslessness:}
+    \begin{itemize}
+        \item If any row contains only the original \( \alpha_{A_j} \) symbols across all attributes, the decomposition is \textbf{lossless}.
+        \item Otherwise, it is \textbf{lossy}.
+    \end{itemize}
+\end{enumerate}
+
+\minititle{Example (Lossless)}
+
+Let \( R(A, B, C) \), with FDs \( F = \{ A \to B \} \), and decomposition:
+\[
+R_1(A, B), \quad R_2(A, C)
+\]
+
+\textbf{Initial Chase Table:}
+
+\begin{tabular}{ccc}
+\toprule
+A & B & C \\
+\midrule
+\( \alpha_A \) & \( \alpha_B \) & \( \beta_{1C} \) \\
+\( \alpha_A \) & \( \beta_{2B} \) & \( \alpha_C \) \\
+\bottomrule
+\end{tabular}
+
+\textbf{Apply } \( A \to B \):  
+\begin{tabular}{ccc}
+\toprule
+A & B & C \\
+\midrule
+\( \alpha_A \) & \( \alpha_B \) & \( \beta_{1C} \) \\
+\( \alpha_A \) & \( \alpha_B \) & \( \alpha_C \) \\
+\bottomrule
+\end{tabular}
+
+Since row 2 contains only \(\alpha\)-symbols, the decomposition is \textbf{lossless}.
+
+\minititle{Example (Lossy)}
+
+Let \( R(A, B, C) \), with FDs \( F = \{ A \to B \} \), and decomposition:
+\[
+R_1(A, B), \quad R_2(B, C)
+\]
+
+\textbf{Initial Chase Table:}
+
+\begin{tabular}{ccc}
+\toprule
+A & B & C \\
+\midrule
+\( \alpha_A \) & \( \alpha_B \) & \( \beta_{1C} \) \\
+\( \beta_{2A} \) & \( \alpha_B \) & \( \alpha_C \) \\
+\bottomrule
+\end{tabular}
+
+\textbf{Apply } \( A \to B \):  
+Only row 1 has \( A = \alpha_A \), but \( B = \alpha_B \) already → no changes.
+
+No row becomes all-\(\alpha\), so the decomposition is \textbf{lossy}.
+
+\mydef{1NF}{
+    A relation is in First Normal Form (1NF) iff the domain contains only atmoic single values.
+}
+
+\minititle{2NF}
+A relation is in Second Normal Form iff:
+\begin{itemize}
+    \item It is in 1NF
+    \item There is no \textit{non-prime} attribute $A$ such that $Y \to A \in F$, where $Y$ is a proper subset of a candidate key $K$ ($Y \subsetneq K$)
+\end{itemize}
+In other words, if all \textit{candidate} keys consist of a single attribute, 2NF is guaranteed.
+
+\textbf{Example: }Consider the relation \texttt{EMP\_PROJ}(\texttt{EmpID, EmpName, ProjId, ProjName, ProjLocation, Hours}) With Candidate Key \texttt{(EmpID, ProjId)} and set of FDs:\\
+$\set{
+    (\texttt{EmpID, ProjId} \to \texttt{Hours}),\\
+    (\texttt{EmpID} \to \texttt{EmpName}),\\
+    (\texttt{ProjId} \to \texttt{ProjName, ProjLocation})
+}$
+
+\texttt{EmpName} is a \textit{non-prime} attribute that is determined by \texttt{EmpID} $\subsetneq \set{\texttt{EmpID, ProjId}}$ Hence 2NF is violated. (the same applies for \texttt{ProjName, ProjLocation})
+
+\textbf{Normalization}
+This relation can be normalized to 2NF by decomposing it in a way so we do not have these \textit{partial} dependencies on the primary key:
+\texttt{EMP(EmpID, EmpName)}, \texttt{PROJ(ProjID, ProjName, ProjLocation)}, \texttt{EMP\_PROJ(EmpID, ProjID, Hours)}
+
+\minititle{3NF}
+A relation is in Third Normal Form iff it is in 2NF and for each FD $X \to Y$, one of the following statements holds:
+\begin{itemize}
+    \item $X \to Y$ is trivial ($Y \subseteq X$)
+    \item $X$ is a \textbf{superkey}
+    \item Every attribute $A \in Y - X$ is a \textit{prime} attribute
+\end{itemize}
+
+\textbf{Example: }Consider the relation \texttt{EMP\_DEPT(}%
+\texttt{EmpID}, %
+\texttt{EmpName}, %
+\texttt{EmpBD}, %
+\texttt{EmpAddress}, %
+\texttt{DeptID}, %
+\texttt{DeptName}, %
+\texttt{DeptMgrId}%
+\texttt{)}
+With FDs:
+\begin{itemize}
+    \item \texttt{EmpID} $\to$ \texttt{EmpName}, \texttt{EmpAddress}, \texttt{EmpBD}, \texttt{DeptID}
+    \item \texttt{DeptID} $\to$ \texttt{DeptName}, \texttt{DeptMgrId}
+\end{itemize}
+
+For FD1, \texttt{EmpID} is superkey (we are safe). For FD2 it is not trivial, \texttt{DeptID} is not superkey, and none of \texttt{DeptName} or \texttt{DeptMgrId} is prime. So this violates 3NF.
+
+\minititle{Normalization}
+We must remove transitive dependencies to normalize to 3NF.
+\begin{itemize}
+    \item \texttt{EMP(}%
+\texttt{EmpID}, %
+\texttt{EmpName}, %
+\texttt{EmpBD}, %
+\texttt{EmpAddress}, %
+\texttt{DeptID}
+\texttt{)}
+    \item \texttt{DEPT(}%
+\texttt{DeptID}, %
+\texttt{DeptName}, %
+\texttt{DeptMgrId}%
+\texttt{)}
+\end{itemize}
+
+\minititle{BCNF}
+A relation $R$ is Boyce-Codd Normal Form (BCNF) iff for each FD $X \to Y$, one the following statements holds:
+\begin{itemize}
+    \item $Y \subseteq X$ (trivial)
+    \item $X$ is a \textit{superkey}
+\end{itemize}
+
+\textbf{Note: }Relations that violate BCNF are rare and hard to find in practice. In real projects, normalizing to 3NF usually guarantee BCNF except for some rare cases.
+
+\textbf{Example: }Assume we are building a system to manage land properties across different districts. Each property is assigned a globally unique property ID.
+
+Locally, properties are identified by the lot number, which is only unique within a district. A property is uniquely identified by district and lot number.
+
+Additionally, each property belongs to one area (each district has multiple areas)
+
+Condider we model this relation as \texttt{LOTS(PropertyID, District, LotNum, Area)} with FDs:
+\begin{itemize}
+    \item \texttt{PropertyID} $\to$ \texttt{District, LotNum, Area}
+    \item \texttt{District, LotNum} $\to$ \texttt{PropertyID, Area}
+    \item \texttt{Area} $\to$ \texttt{District}
+\end{itemize}
+We have the following candidate keys:
+\begin{itemize}
+    \item \texttt{PropertyID}
+    \item \texttt{District, LotNum}
+\end{itemize}
+The relation is in 3NF because, for each FD:
+\begin{itemize}
+    \item \texttt{PropertyID} is a super key (candidate means minimal super key)
+    \item \texttt{District, LotNum} is a super key (same reasoning)
+    \item \texttt{District} is \textit{prime} since it is part of \texttt{District, LotNum}
+\end{itemize}
+The relation is not in BCNF because FD3 violates that (\texttt{Area} is not a super key)
+\minititle{Normalization}
+To normalize to BCNF, we decompose in a way that \texttt{Area} is a super key in one of the relations. Because Area determines district, we make a separate relation for that with \texttt{Area} as our primary:
+\texttt{AREA\_DISTRICT(Area, District)}
+
+The relation have to be: \texttt{LOTS(PropertyID, LotNum, Area)}
+
+\textbf{Disadvantage: }We lost \texttt{District, LotNum} $\to$ \texttt{PropertyID, Area}
+
+\newpage
+\section{Graph Databases and Cypher Queries}
+
+\subsection*{Graph Data Model}
+A graph database represents data as a property graph \( G = (V, E, \lambda_V, \lambda_E) \), where:
+\begin{itemize}
+  \item \( V \): set of nodes (entities)
+  \item \( E \): set of edges (relationships)
+  \item \( \lambda_V \): node properties
+  \item \( \lambda_E \): edge properties
+\end{itemize}
+
+\minititle{Example Node and Edge}
+\begin{itemize}
+  \item Node: \texttt{(a:Person \{name: 'Alice', age: 30\})}
+  \item Edge: \texttt{(a)-[:FRIEND\_OF \{since: 2015\}]->(b)}
+\end{itemize}
+
+Graph DBs favor connected data and avoid joins by treating relationships as first-class citizens.
+
+\subsection*{Advantages of Graph Databases}
+\begin{itemize}
+    \item Efficient Traversals: Constant time access to related nodes.
+    \item Schema Flexibility: Easily adapt to changing requirements.
+    \item Natural Modeling: Direct mapping of real-world relationships.
+    \item Performance: Particularly efficient for deep, multi-hop queries.
+\end{itemize}
+
+\subsection*{Graph DB Instances and Schemata}
+\begin{figure}[ht]
+    \begin{minipage}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/graph_db_instance.png}
+        \caption{Instance}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.48\linewidth}
+        \includegraphics[width=\linewidth]{images/graph_db_schema.png}
+        \caption{Schema}
+    \end{minipage}
+\end{figure}
+\commandnote{
+    Unlike relational databases, graph databases can be populated without prior specification of the schema!
+}
+
+\subsection*{Native vs Non-Native Storage}
+\begin{itemize}
+  \item \textbf{Native}: Index-free adjacency, fast for traversal
+  \item \textbf{Non-Native}: Graph overlay on relational backend
+\end{itemize}
+
+\subsection*{ER to Graph Schema Transformation}
+\begin{itemize}
+  \item Entities \(\to\) Nodes
+  \item Binary relations \(\to\) Edges
+  \item N-ary relations \(\to\) Nodes with role-labeled edges
+\end{itemize}
+
+\minititle{Examples:}
+\begin{figure}[H]
+    \includegraphics[width=0.4\linewidth]{images/1.png}
+\end{figure}
+    
+\begin{figure}[H]
+    \includegraphics[width=0.4\linewidth]{images/2.png}
+\end{figure}
+
+\begin{figure}[H]
+    \includegraphics[width=0.4\linewidth]{images/3.png}
+\end{figure}
+
+\subsection*{Graph Schema Equivalence}
+\mydef{Graph Universe}{
+    The graph universe $U(S)$ of a graph schema $S$ is the infinite set of all graph instances of $S$
+}
+
+\mydef{Equivalent}{
+    Two graph schemata $S$ and $\hat{S}$ are equivalent iff $\exists f. f:U(S)\to U(\hat{S})$
+}
+
+
+\subsection*{Graph Schema Transformation Rules}
+\begin{itemize}
+  \item \textbf{Renaming}: Change label/property names \textit{(schema-preserving)}
+  \item \textbf{Reverse Edges}: Invert direction if no conflict exists
+  \item \textbf{Property Displacement}: Move edge prop to node if look-across is 1
+  \item \textbf{Specialization/Generalization}: Split or merge types by property predicates
+  \item \textbf{Edge Promotion}: Turn edge into node with two new edges
+  \item \textbf{Property Promotion}: Factor property set into a separate node
+  \item \textbf{Multivalued Expansion}: Turn list-valued property into connected nodes
+\end{itemize}
+
+\minititle{Derived Vertex Types, Edge Types, and Properties}
+
+Let $S$ be a graph schema and $U(S)$ the corresponding graph universe.
+
+\begin{itemize}
+    \item A vertex type $T$ is \emph{derived} in $S$ iff, for all graphs $G \in U(S)$, the graph $G$ can be uniquely reconstructed from $G - V_T$, where $V_T$ is the set of all vertices in $G$ with type $T$.
+    
+    \item An edge type $T$ is \emph{derived} in $S$ iff, for all graphs $G \in U(S)$, the graph $G$ can be uniquely reconstructed from $G - E_T$, where $E_T$ is the set of all edges in $G$ with type $T$.
+    
+    \item A vertex or edge property $P$ is \emph{derived} in $S$ iff, for all graphs $G \in U(S)$, the graph $G$ can be uniquely reconstructed from a graph $G'$ where the property $P$ has been deleted from all vertices and edges.
+\end{itemize}
+
+\minititle{General Rule To Simplify Graph Schemas}
+Given a graph schema $S$, deleting a derived property or vertex/edge type yields an equivalent graph schema $\hat{S}$
+
+\minititle{General Rule To Make Graph Schemas More Complex}
+Given a graph schema $S$, adding a vertex type, edge type, or property $T$ such that $T$ is derived in $\hat{S} = S + T$ yields an equivalent graph schema $\hat{S}$
+
+\subsection*{Cypher Query Language}
+\mydef{Cypher}{Declarative graph query language used in Neo4j. Pattern-based, ASCII-art style.}
+
+\minititle{Pattern Matching}
+\texttt{MATCH (a:Person)-[:KNOWS]->(b) RETURN b.name}
+
+\minititle{Core Constructs}
+\begin{itemize}
+  \item Node: \texttt{(p:Person \{name: 'Anna'\})}
+  \item Edge: \texttt{[:KNOWS \{since: 2019\}]}
+  \item Path: \texttt{(a)-[:KNOWS*1..3]-(b)} (1--3 undirected hops)
+  \item Undirected Edge: \texttt{(a)-[:KNOWS]-(b)}
+\end{itemize}
+
+\minititle{Modifying Data}
+\textbf{CREATE}
+\begin{itemize}
+  \item \texttt{CREATE (a:Person \{name: 'Bob'\})} -- new node
+  \item \texttt{CREATE (a)-[:KNOWS]->(b)} -- new edge
+\end{itemize}
+
+\textbf{DELETE}
+\begin{itemize}
+  \item \texttt{DELETE a} -- only if a has no edges
+  \item \texttt{DETACH DELETE a} -- delete node and connected edges
+\end{itemize}
+
+\textbf{SET}
+\begin{itemize}
+  \item \texttt{SET a.surname = 'Smith'} -- add or update property
+  \item \texttt{SET a = \{name: 'X', age: 42\}} -- overwrite all properties
+\end{itemize}
+
+\subsection*{Schema Constraints in Cypher}
+\begin{itemize}
+  \item \textbf{Uniqueness}: \texttt{REQUIRE (n.p1, n.p2) IS UNIQUE}
+  \item \textbf{Existence}: \texttt{REQUIRE n.prop IS NOT NULL}
+  \item \textbf{Type}: \texttt{REQUIRE n.prop IS :: STRING}
+  \item \textbf{Key}: \texttt{REQUIRE (n.p1, n.p2) IS NODE KEY}
+\end{itemize}
+
+\mydef{Example: Key Constraint}{
+Ensure each Actor has a unique name combination: \\
+\texttt{CREATE CONSTRAINT actor\_id FOR (a:Actor) REQUIRE (a.firstname, a.surname) IS NODE KEY}
+}
+
+\newpage
+\section{Descriptive Statistics and Data Normalization}
+\subsection*{Measures of Central Tendency}
+\mydef{Mean}{
+    $\mu = \frac{1}{n} \sum_{i=1}^n x_i$
+}
+
+\commandnote{Mean is best for symmetrical distributions without outliers}
+
+\minititle{Optimization-Based Median}
+In the context of Optimization, the median for $n$ numbers is a \textit{set-valued function} when $n$ is even and a \textit{single-valued function} when $n$ is odd. The function gives us the value or the set of values that minimizes the distance to all elements.
+\[
+\text{Median} = \displaystyle \min_{x} \sum_{i=1}^n | x-x_i |
+\]
+
+\textbf{Examples (odd):}
+data: $\set{1,2,3,6,10}$
+we want to minimize $f(x)= \sum | x - x_i |$
+\begin{itemize}
+    \item $f(1) = |1-1| + |1-2| + |1-3| + |1-6| + |1-10| = 0 + 1 + 2 + 5 + 9 = 17$
+    \item $f(2) = |2-1| + |2-2| + |2-3| + |2-6| + |2-10| = 1 + 0 + 1 + 4 + 8 = 14$
+    \item $f(3) = |3-1| + |3-2| + |3-3| + |3-6| + |3-10| = 2 + 1 + 0 + 3 + 7 = 13$
+    \item $f(6) = |6-1| + |6-2| + |6-3| + |6-6| + |6-10| = 5 + 4 + 3 + 0 + 4 = 16$
+    \item $f(10) = |10-1| + |10-2| + |10-3| + |10-6| + |10-10| = 9 + 8 + 7 + 4 + 0 = 28$
+\end{itemize}
+Hence, the minimum occurs at $x = 3$ with $f(3) = 13$. Since the number of data points is odd, the optimization-based median is \textbf{unique} and equal to the middle value in the sorted list: $\boxed{3}$.
+
+\textbf{Examples (even):}
+data: $\set{1,2,3,6}$
+we want to minimize $f(x)= \sum | x - x_i |$
+\begin{itemize}
+    \item $f(1) = |1-1| + |1-2| + |1-3| + |1-6| = 0 + 1 + 2 + 5 = 8$
+    \item $f(2) = |2-1| + |2-2| + |2-3| + |2-6| = 1 + 0 + 1 + 4 = 6$
+    \item $f(3) = |3-1| + |3-2| + |3-3| + |3-6| = 2 + 1 + 0 + 3 = 6$
+    \item $f(6) = |6-1| + |6-2| + |6-3| + |6-6| = 5 + 4 + 3 + 0 = 12$
+\end{itemize}
+We observe that $f(x)$ attains its minimum value of $6$ for any $x \in [2, 3]$. Since the number of data points is even, the optimization-based median is \textbf{set-valued}, and any value in the interval $\boxed{[2, 3]}$ minimizes the total absolute deviation.
+
+\commandnote{
+    The Optimization-Based Median can be computed using simple rules when the data is sorted in ascending order and indexed as $x_1, x_2, \dots, x_n$. If $n$ is odd, the median is the single value at index $i = \frac{n+1}{2}$ (i.e., the middle element). If $n$ is even, the median is any value in the interval $[x_{n/2},\, x_{ \frac{n}{2} + 1}]$.
+}
+
+\minititle{Statistical Median}
+Conventually in statistics, the median is always one single value, therefore when $n$ is even, the median is calculated as $\frac{x_{\frac{n}{2}} + x_{\frac{n}{2}+1}}{2}$. and for odd we just use the middle value formula ($x_{\frac{n+1}{2}}$)
+
+\textbf{Example:}
+Data: $\{1, 4, 7, 9\}$
+
+Here, $n = 4$ is even, so we compute:
+\[
+\text{median} = \frac{x_2 + x_3}{2} = \frac{4 + 7}{2} = \boxed{5.5}
+\]
+
+\commandnote{Median is preferred for skewed distributions or when outliers are present}
+
+\mydef{Mode}{
+    The most frequent value(s) in the dataset. $\text{mode} = \operatorname*{arg\,max}_{x} \left| \left\{ i \in \{1, \dots, n\} \mid x_i = x \right\} \right|$
+}
+\textbf{Example:}
+
+Data: $\{2, 3, 5, 3, 8, 3, 2\}$
+
+We compute the size of each set:
+\begin{align*}
+&\left|\left\{ i \mid x_i = 2 \right\}\right| = 2 \quad \text{(indices 1 and 7)} \\
+&\left|\left\{ i \mid x_i = 3 \right\}\right| = 3 \quad \text{(indices 2, 4, and 6)} \\
+&\left|\left\{ i \mid x_i = 5 \right\}\right| = 1 \quad \text{(index 3)} \\
+&\left|\left\{ i \mid x_i = 8 \right\}\right| = 1 \quad \text{(index 5)}
+\end{align*}
+
+The maximum count is $3$, which occurs at $x = 3$.
+
+\commandnote{Mode is useful for categorical data or to identify the most frequent value}
+
+\minititle{Unimodal vs. Multimodal}
+\begin{figure}[H]
+    \includegraphics[width=0.5\linewidth]{images/unimodal_multimodal.png}
+\end{figure}
+
+\subsection*{Measures of Dispersion}
+\mydef{Range}{
+    The difference between the maximum and minimum values ($\displaystyle \max_{i} X_i \; - \; \min_{i} X_i$)
+}
+\commandnote{
+    Range is best for a quick estimate of variability. However it is sensitive to outliers since it only considers extreme values
+}
+
+\mydef{IQR}{
+    Interquartile Range (IQR) is the difference between the third quartile (Q3) and first quartile (Q1), measuring the spread of the middle 50\% of data ($Q_3 - Q_1$)
+}
+\commandnote{
+    IQR is a robust measure of spread. It is useful when dealing with skewed distributions or outliers since it ignores extreme values
+}
+
+\mydef{Variance $\sigma^2$}{
+    The average squared deviation from the mean. Calculated as $\sigma^2 = \frac{1}{n} \sum_{i=1}^n (X_i - \mu_X)^2$
+}
+
+\mydef{Unnormalized Variance (Total Variability)}{
+    The raw sum of squares, called total sum of squares. $\text{TSS} = \sum_{i=1}^n (X_i - \mu_X)^2 = n \sigma_X^2$
+}
+\commandnote{
+    Variance measures overall data dispersion. However, squaring emphasizes larger deviations, making it more sensitive to extreme values
+}
+
+
+\mydef{Standard Deviation $\sigma$}{
+    The square root of variance ($\sqrt{\sigma^2}$), indicating the average deviation from the mean
+}
+
+\mydef{Unnormalized Standard Deviation}{
+    $\hat{\sigma}_X=\sqrt{\text{TSS}} = \sqrt{\sum_{i=1}^n (X_i - \mu_X)^2} = \sqrt{n \sigma_X^2} = \sqrt{n}\sigma_X$
+}
+\commandnote{
+    Standard Deviation is measured in the same unit as the data (more intuitive). It is used in many statistical methods like confidence intervals and hypothesis testing
+}
+
+\mydef{Covariance}{
+    $\text{Cov}(X,Y) = \frac{1}{n} \sum_{i=1}^n (x_i - \mu_X)(y_i - \mu_Y)$
+}
+
+\mydef{Unnormalized Covariance}{
+    $\text{Cov}_{unnormalized}(X,Y) = \sum_{i=1}^n (x_i - \mu_X)(y_i - \mu_Y) = n \text{Cov}(X,Y)$
+}
+
+\mydef{Coefficient of Variation (CV)}{
+    relative measure of dispersion, calculated as the standard deviation divided by the mean ($\text{CV}=\frac{\sigma}{\mu} \times 100\%$)
+}
+
+\commandnote{
+    CV is useful for comparing variability across datasets with different units or scales. Low CV indicates less relative variability and more consistency. High CV suggests greater dispersion relative to the mean
+}
+
+\textbf{Side Note: }Only use CV for data measured on a ratio scale, where quantity ratios and zeros are meaningful.
+
+\mydef{Skewness}{
+    Measures data asymmetry by relating the average cubed distances from the mean to the standard deviation. It is calculated as $\frac{\frac{1}{n}\sum_{i=1}^n (X_i - \mu)^3}{\sigma^3}$.
+}
+
+The Cubed distances from the mean preserve sign of distances, tend to cancel out for symmetric distributions.
+
+\commandnote{
+    Skewness close to zero: indicates a symmetric distribution (mean, median and mode are close). Positive skewness: suggests a longer right tail (mode $\leq$ median $\leq$ mean). Negative skewness: indicates a longer left tail (mode $\geq$ median $\geq$ mean)
+}
+
+\subsection*{Measures of Correlation}
+\minititle{Pearson’s Correlation Coefficient}
+Assume we have quantitative data points $X = \set{x_i \mid i \in [1\dots n]}$ and $Y = \set{y_i \mid i \in [1\dots n]}$. Pearson’s Correlation Coefficient ($r$) is defined as the covariance of $X$ and $Y$ divided by the product of their standard deviations:
+\[
+r = \frac{ \frac{1}{n} \sum_{i=1}^n (x_i - \mu_X)(y_i - \mu_Y)}{\sigma_X  \sigma_Y} = \frac{\text{Cov}(X,Y)}{\sqrt{\sigma_X^2}  \sqrt{\sigma_Y^2}} = \frac{\frac{1}{n} \sum_{i=1}^n (x_i - \mu_X)(y_i - \mu_Y)}{\sqrt{\frac{1}{n} \sum_{i=1}^n (X_i - \mu_X)^2} \sqrt{\frac{1}{n} \sum_{i=1}^n (y_i - \mu_Y)^2}} \quad \quad \boxed{r(X,Y) \in  [-1,1]}
+\]
+\begin{figure}[H]
+    \includegraphics[width=0.3\linewidth]{images/pearson.png}
+\end{figure}
+
+\textbf{Unnormalized r:}
+\[
+\hat{r} = \frac{\text{Cov}_{unnormalized}(X,Y)}{\sqrt{\text{TSS}_X} \sqrt{\text{TSS}_Y}} = \frac{\sum_{i=1}^n (x_i - \mu_X)(y_i - \mu_Y)}{\sqrt{\sum_{i=1}^n (x_i - \mu_X)^2} \sqrt{\sum_{i=1}^n (y_i - \mu_Y)^2}}
+\]
+
+\mydef{OLS Regression}{
+To find the line that best fits our data and explain how our $Y$ is linearly dependent on $X$, we find model parametes $\alpha$ and $\beta$ that minimize the sum of squared errors $\sum_{i=1}^n (y_i - \hat{y}_i)^2$ where $\hat{y_i} = \alpha x_i + \beta + \epsilon_i$
+}
+There is a \textit{closed-form} solution for this optimization problem and that is:
+\[
+\alpha = \frac{\text{Cov}_{unnormalized}(X,Y)}{\text{TSS}_X} = 
+ \frac{\sum_{i=1}^n(x_i - \mu_X)(y_i - \mu_Y)}{\sum_{i=1}^n(x_i - \mu_X)^2}
+\]
+
+\[
+= \frac{n \text{Cov}(X,Y)}{n \sigma_X^2} = \frac{\text{Cov}(X,Y)}{\sigma_X^2}
+\]
+Remember: $r = \frac{\text{Cov}(X,Y)}{\sigma_X  \sigma_Y}$. Meaning: $\text{Cov}(X,Y) = r \sigma_X  \sigma_Y$
+\[
+\alpha = \frac{r \sigma_X  \sigma_Y}{\sigma_X^2} = r\frac{\sigma_Y}{\sigma_X}
+\]
+
+\[
+\beta = \mu_Y - \alpha \mu_X
+\]
+
+\mydef{Explained Variability}{
+    Once we fit a line $\hat{y_i} = \alpha x_i + \beta + \epsilon$ we can calculate the explained variability. $\sum_{i=1}^n (\hat{y}_i - \mu_Y)^2$
+}
+
+\mydef{Coefficient of Determination ($R^2$)}{
+    What fraction of the total variability in $Y$ is explained by our linear model. 
+}
+\[
+    R^2 = \frac{\text{Explained Variability}}{\text{Total Variability}} = \frac{\sum_{i=1}^n (\hat{y}_i - \mu_Y)^2}{\sum_{i=1}^n (y_i - \mu_Y)^2} \qquad R^2 = 1 \to \text{perfect prediction}
+\]
+
+\[
+\text{Remember: }
+\hat{y}_i = \alpha x_i + \beta \text{ and } \mu_Y = \alpha \mu_X + \beta
+\]
+
+\[
+R^2 = \frac{\sum_{i=1}^n (\alpha x_i + \beta - (\alpha \mu_X + \beta))^2}{\sum_{i=1}^n (y_i - \mu_Y)^2}
+\]
+
+\[
+R^2 = \frac{\sum_{i=1}^n (\alpha x_i + \beta - \alpha \mu_X - \beta)^2}{\sum_{i=1}^n (y_i - \mu_Y)^2}
+\]
+
+\[
+R^2 = \frac{\sum_{i=1}^n (\alpha x_i - \alpha \mu_X)^2}{\sum_{i=1}^n (y_i - \mu_Y)^2}
+\]
+
+\[
+R^2 = \frac{\sum_{i=1}^n (\alpha (x_i - \mu_X))^2}{\sum_{i=1}^n (y_i - \mu_Y)^2}
+\]
+
+\[
+R^2 = \frac{\alpha^2 \sum_{i=1}^n (x_i - \mu_X)^2}{\sum_{i=1}^n (y_i - \mu_Y)^2} = \frac{\alpha^2 \text{TSS}_X}{\text{TSS}_Y} = \alpha^2 \frac{n \sigma_X^2}{n \sigma_Y^2} = \frac{\alpha^2 \sigma_X^2}{\sigma_Y^2} 
+\]
+
+\[
+\text{Remember: } \alpha = r\frac{\sigma_Y}{\sigma_X} \text{ Hence }\alpha^2 = r^2 \frac{\sigma_Y^2}{\sigma_X^2}
+\]
+
+\begin{align*}
+R^2 &= \alpha^2 \frac{\sigma_X^2}{\sigma_Y^2} \\
+&= r^2 \frac{\sigma_Y^2}{\sigma_X^2} \frac{\sigma_X^2}{\sigma_Y^2} \\
+R^2 &= r^2
+\end{align*}
+
+\minititle{Spearman’s Rank Correlation Coefficient}
+Because $r$ is sensitive to outliers and only suitable for linear relationships. We apply the Rank-Transformation trick to the data by the following steps:
+\begin{enumerate}
+    \item Transform data $X = \set{x_i \mid i \in [1\dots n]}$ and $Y = \set{y_i \mid i \in [1\dots n]}$ into fractional ranks $X^R = \set{x^R_i \mid i \in [1\dots n]}$ and $Y^R = \set{y^R_i \mid i \in [1\dots n]}$
+    
+        \begin{enumerate}
+        \item For each $x_i$ collect set $J_i = \set{j \in [1 \dots n] \mid x_i = x_j}$ of indices $j$ of data points identical to $x_i$
+        \item Sort the data in ascending order and store position $\pi_i$ of $x_i$ in sorted array (ordinal ranking)
+        \item Compute fractional ranks as \textit{mean} of ordinal ranks of identical values:
+        \[
+        X_i^R = \frac{\sum_{i\in J_i} \pi_i}{|J_i|} = \frac{\text{min}_{j \in J_i} \pi_i + \text{max}_{j \in J_i} \pi_i}{2}
+        \]
+        \end{enumerate}
+    \item Compute Spearman’s rank correlation coefficient as Pearson’s correlation coefficient ($r$) of rank-transformed data $X^R$ and $Y^R$
+    \[
+    \rho = r(X^R, Y^R) = 
+    \frac{\sum_{i=1}^n (x_i^R - \mu_X^R)(y_i^R - \mu_Y^R)}
+    {\sqrt{\sum_{i=1}^n (x_i^R - \mu_X^R)^2} \sqrt{\sum_{i=1}^n (y_i^R - \mu_Y^R)^2}}
+    \]
+\end{enumerate}
+\commandnote{
+    The mean of the ordinal ranks of elements in $J_i$ is equal to the mean of the minimum and maximum of these ordinal ranks
+}
+
+Assume we have data $[1,2,2,2,3]$ and their ordinal ranks $[1,2,3,4,5]$. We have $k=3$ tied elements starting from $r=2$, their ordinal ranks are $2,3,4$ which is $r, r+1, r+2$ and their mean is $\frac{r + (r+1)+ (r+2)}{k}$. The general formula for the mean is:
+\[
+    \frac{(r)+ (r+1)+ (r+2)+ \dots + (r+k-1)}{k}
+\]
+
+And the mean of the first and last ordinal ranks is $\frac{r + (r+k-1)}{2} = \frac{2r+k-1}{2} = \frac{2r}{2} + \frac{k-1}{2} = r (\frac{2}{2}) + \frac{k-1}{2} = r + \frac{k-1}{2}$
+
+We want to prove the following equality:
+\[
+\frac{(r)+ (r+1)+ (r+2)+ \dots + (r+k-1)}{k} = r + \frac{k-1}{2}
+\]
+\begin{align*}
+\frac{(r)+ (r+1)+ (r+2)+ \dots + (r+k-1)}{k} &= 
+\frac{\sum_{i=0}^{k-1} r + i}{k} = \frac{1}{k}\sum_{i=0}^{k-1} r + i \\
+\end{align*}
+\[
+\frac{1}{k}\sum_{i=0}^{k-1} r + i = \frac{1}{k} (\sum_{i=0}^{k-1} r + \sum_{i=0}^{k-1} i) \qquad \qquad \sum_{i=0}^{k-1} r \quad \text{evaluates to }kr
+\]
+
+\[
+\sum_{i=0}^{k-1} i = \frac{k(k-1)}{2} \qquad \text{triangular numbers } (\sum_{i=1}^n i = 1+2+3+ \dots +n = \frac{n (n+1)}{2})
+\]
+
+\[
+\frac{1}{k} (\sum_{i=0}^{k-1} r + \sum_{i=0}^{k-1} i) = 
+\frac{1}{k} (kr + \frac{k(k-1)}{2}) =
+\frac{kr}{k} +  \frac{k(k-1)}{2k} = 
+r + \frac{k-1}{2}
+\]
+\minititle{Example:}
+Let:
+\[
+X = [1,\ 1,\ 3,\ 5,\ 5,\ 5,\ 7], \quad
+Y = [2,\ 2,\ 4,\ 6,\ 7,\ 6,\ 9]
+\]
+
+\begin{enumerate}
+    \item \textbf{Rank-transform both $X$ and $Y$}
+
+    \textbf{Step 1: Ordinal Ranks}
+
+    \begin{itemize}
+        \item Sorted $X$: $[1, 1, 3, 5, 5, 5, 7]$ → Ordinal ranks: $[1, 2, 3, 4, 5, 6, 7]$
+        \item Sorted $Y$: $[2, 2, 4, 6, 6, 7, 9]$ → Ordinal ranks: $[1, 2, 3, 4, 5, 6, 7]$
+    \end{itemize}
+
+    \textbf{Step 2: Fractional Ranks}
+
+    \begin{itemize}
+        \item For $X$:
+        \[
+        \begin{aligned}
+        x_1 = x_2 = 1 &\Rightarrow x_1^R = x_2^R = \frac{1 + 2}{2} = 1.5 \\
+        x_3 = 3 &\Rightarrow x_3^R = 3 \\
+        x_4 = x_5 = x_6 = 5 &\Rightarrow x_{4..6}^R = \frac{4 + 6}{2} = 5 \\
+        x_7 = 7 &\Rightarrow x_7^R = 7
+        \end{aligned}
+        \]
+        \item For $Y$:
+        \[
+        \begin{aligned}
+        y_1 = y_2 = 2 &\Rightarrow y_1^R = y_2^R = \frac{1 + 2}{2} = 1.5 \\
+        y_3 = 4 &\Rightarrow y_3^R = 3 \\
+        y_4 = y_6 = 6 &\Rightarrow y_4^R = y_6^R = \frac{4 + 5}{2} = 4.5 \\
+        y_5 = 7 &\Rightarrow y_5^R = 6 \\
+        y_7 = 9 &\Rightarrow y_7^R = 7
+        \end{aligned}
+        \]
+    \end{itemize}
+
+    \textbf{Fractional Ranks:}
+
+    \[
+    X^R = [1.5,\ 1.5,\ 3,\ 5,\ 5,\ 5,\ 7]
+    \quad
+    Y^R = [1.5,\ 1.5,\ 3,\ 4.5,\ 6,\ 4.5,\ 7]
+    \]
+
+    \item \textbf{Compute Pearson $r$ on ranks}
+
+    \begin{itemize}
+        \item Mean ranks:
+        \[
+        \mu_X^R = \frac{1}{7}(1.5 + 1.5 + 3 + 5 + 5 + 5 + 7) = \frac{28}{7} = 4
+        \]
+        \[
+        \mu_Y^R = \frac{1}{7}(1.5 + 1.5 + 3 + 4.5 + 6 + 4.5 + 7) = \frac{28}{7} = 4
+        \]
+
+        \item Numerator
+
+        \[
+        \sum (x_i^R - \mu_X^R)(y_i^R - \mu_Y^R) \approx 22.25
+        \]
+      
+        \item Denominator
+        \[
+        \sqrt{\sum_{i=1}^n (x_i^R - \mu_X^R)^2} \sqrt{\sum_{i=1}^n (y_i^R - \mu_Y^R)^2}
+         = \sqrt{25.5} \sqrt{27}
+        \]
+        \item Then:
+       \[
+        \rho = \frac{22.25}{\sqrt{25.5} \cdot \sqrt{27}} = \frac{22.25}{\sqrt{688.5}} \approx \frac{22.25}{26.24} \approx 0.848
+        \]
+    \end{itemize}
+\end{enumerate}
+
+\subsection*{Visualization}
+\minititle{Box Plots}
+\begin{figure}[H]
+\includegraphics[width=0.4\linewidth]{images/boxplot.png}
+\includegraphics[width=0.4\linewidth]{images/boxplot2.png}
+\end{figure}
+
+\textbf{Use Case (Detecting Outliers):}
+Given the sorted dataset:
+\[
+\text{data} = [10, 20, 30, 40, 50, 60, 70, 80, 90, 500], \quad n = 10
+\]
+
+To compute the 25th percentile using linear interpolation, we use the formula:
+\[
+\text{Position} = \frac{p}{100} \cdot (n - 1)
+\]
+
+Substituting \(p = 25\), we get:
+\[
+\text{Position} = \frac{25}{100} \cdot (10 - 1) = 0.25 \cdot 9 = 2.25
+\]
+
+This indicates that the 25th percentile lies 25\% of the way between the values at positions 2 and 3 (using zero-based indexing), which are:
+\[
+\text{data}[2] = 30, \quad \text{data}[3] = 40
+\]
+
+We linearly interpolate between these values:
+\[
+\text{25th percentile} = 30 + 0.25 \cdot (40 - 30) = 30 + 2.5 = 32.5
+\]
+
+Therefore, the 25th percentile of the dataset is:
+\[
+\boxed{Q1 = 32.5}
+\]
+
+For the 75th percentile:
+Substituting \(p = 75\), we get:
+\[
+\text{Position} = \frac{75}{100} \cdot (10 - 1) = 0.75 \cdot 9 = 6.75
+\]
+
+This indicates that the 75th percentile lies 75\% of the way between the values at positions 6 and 7, which are:
+\[
+\text{data}[6] = 70, \quad \text{data}[7] = 80
+\]
+
+We linearly interpolate between these values:
+\[
+\text{75th percentile} = 70 + 0.75 \cdot (80 - 70) = 70 + 7.5 = 77.5
+\]
+
+Therefore, the 75th percentile of the dataset is:
+\[
+\boxed{Q3 = 77.5}
+\]
+
+Using Q1 and Q3, we can calculate $\text{IQR} = Q3 - Q1 = 77.5 - 32.5 = 45$
+
+From that, we can calculate lower and upper bounds to detect outliers:
+\[
+\text{Lower Fence} = Q_1 - 1.5 \cdot \text{IQR} = 32.5 - 67.5 = -35
+\]
+\[
+\text{Upper Fence} = Q_3 + 1.5 \cdot \text{IQR} = 77.5 + 67.5 = 145
+\]
+
+Min and Max (excluding outliers):
+\[
+\text{Min} = 10, \quad \text{Max} = 90
+\]
+
+\textbf{Outlier:} The value 500 exceeds the upper fence and is therefore an outlier.
+
+
+
+\minititle{Scatter Plots}
+\begin{figure}[H]
+\includegraphics[width=0.5\linewidth]{images/scatterplot.png}
+\end{figure}
+
+\minititle{Heat Maps}
+\begin{figure}[H]
+    \includegraphics[width=0.5\linewidth]{images/heatmap.png}
+\end{figure}
+
+\minititle{Histograms and Bar Charts}
+\begin{figure}[H]
+    \includegraphics[width=0.48\linewidth]{images/histogram.png}
+    \includegraphics[width=0.48\linewidth]{images/histogram_vs_barchart.png}
+\end{figure}
+
+\minititle{KDE Plots}
+\begin{itemize}
+    \item Provides smooth estimate of the probability density function (PDF) from data, as a continuous alternative to a histogram.
+    \item Each data point $x_i$ contributes a Gaussian $\mathcal{N}(x_i, h^2)$ to the total density. These are averaged to get an estimate of the full density
+    \[
+    f(x) = \frac{1}{nh} \sum_{i=1}^n \frac{1}{\sqrt{2 \pi}} e^{-\frac{(x-x_i)^2}{2h^2}}
+    \]
+    \item too small $h \to$ under-smoothed plot
+    \item too high $h \to$ over-smoothed plot
+\end{itemize}
+\begin{figure}[H]
+    \includegraphics[width=0.5\linewidth]{images/kde.png}
+\end{figure}
+
+\text{Detect skewness from density plots:}
+\begin{figure}[H]
+    \includegraphics[width=0.3\linewidth]{images/skew.png}
+\end{figure}
+\minititle{Violin Plots}
+A violin plot shows \textbf{summary statistics} \textit{(box plot)} and \textbf{full distribution} \textit{(KDE)}
+\begin{figure}[H]
+    \includegraphics[width=0.3\linewidth]{images/violin.png}
+\end{figure}
+
+\subsection*{Normalization}
+\minititle{Min-Max}
+\begin{itemize}
+    \item Preserves orders and scaling. Fixed range $[0,1]$ (Good for bounded data)
+    \item Sensitive to outliers and does not generalize well
+\end{itemize}
+\[
+\hat{x} = \frac{x-\text{min}}{\text{max} - \text{min}}
+\]
+
+\minititle{Z-Score}
+Useful when data is not bounded. Handles outliers well. Normalized data have zero mean and standard deviation of one. Handles varying distributions.
+\[
+\hat{x} = \frac{x - \mu_X}{\sigma_X}
+\]
+
+\minititle{Robust Scaling}
+More resistant to outliers (best for handling outliers). Works well with skewed and non-Gaussian data
+\[
+\hat{x} = \frac{x - \text{median}_X}{\text{IQR}_X}
+\]
+
+\minititle{Decimal Scaling}
+Used when you want to avoid using min-max but still need a fixed range (Quick and dirty)
+\[
+\hat{x} = \frac{x}{10^k} \text{ where } k \text{ is the smallest natural number such that }\frac{x}{10^k} \in [-1,1] \forall x
+\]
+
+\minititle{Log Transformation}
+\begin{itemize}
+    \item Reduces skewness and improves normality. Stabilizes variance and Preserves order.
+    \item Best for reducing skewness in rightskewed data.
+    \item Not defined for negative values and can distort small values
+\end{itemize}
+\[
+\hat{x} = \text{log}(x + 1)
+\]
+
+\minititle{What to choose?}
+\begin{itemize}
+    \item No one-size-fits-all solution: choose based on data properties and requirement analysis
+    \item Consider preprocessing techniques before normalization
+    \item Always visualize data before and after transformation
+\end{itemize}
+
+\textbf{Consider the Data Distribution}
+\begin{itemize}
+    \item If your data is \textit{right-skewed}, use log transformation
+    \item If it is with outliers, use robust scaling
+    \item If transformed data needed in fixed range, then min-max or decimal
+    \item If your data is normality distributed, then use Z-scores
+\end{itemize}
+
 \end{document}
 
