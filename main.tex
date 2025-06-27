@@ -2309,5 +2309,740 @@ Used when you want to avoid using min-max but still need a fixed range (Quick an
     \item If your data is normality distributed, then use Z-scores
 \end{itemize}
 
+\newpage
+\section{Distance and Similarity Measures}
+\textbf{Matrix Multiplication }
+$A = \begin{bmatrix}
+a & b \\
+c & d
+\end{bmatrix}
+\qquad
+B = \begin{bmatrix}
+e & f \\
+g & h
+\end{bmatrix}
+\qquad
+AB = \begin{bmatrix}
+ae + bg & af + bh \\
+ce + dg & cf + dh
+\end{bmatrix}
+$
+
+\mydef{Symmetric}{
+    A matrix $A$ is symmetric iff $A = A^T$. Or iff $A_{ij} = A_{ji} \quad \forall\, i,\, j$. \textbf{Example: }$
+A = \begin{bmatrix}
+2 & 5 \\
+5 & 3
+\end{bmatrix}
+$
+}
+
+\mydef{Positive Definite (PD)}{
+    A \textbf{symmetric matrix} $A$ is \textbf{positive definite} if, for every \textbf{nonzero} vector $x$, $x^T A x > 0$. Example:
+}
+Let
+$
+A = \begin{bmatrix}
+2 & 0 \\
+0 & 3
+\end{bmatrix}
+$
+For any vector $x = \begin{bmatrix} a \\ b \end{bmatrix}$,
+\[
+x^T A x = \begin{bmatrix} a & b \end{bmatrix}
+\begin{bmatrix} 2 & 0 \\ 0 & 3 \end{bmatrix}
+\begin{bmatrix} a \\ b \end{bmatrix}
+= \begin{bmatrix} a & b \end{bmatrix} \begin{bmatrix} 2a \\ 3b \end{bmatrix}
+= 2a^2 + 3b^2
+\]
+For any $x \neq 0$, $2a^2 + 3b^2 > 0$, so $A$ is positive definite.
+
+
+\mydef{Positive Semi-Definite (PSD)}{
+    A \textbf{symmetric matrix} $A$ is \textbf{positive semi-definite} if, for \text{every vector} $x$, $x^T A x \geq 0$. Example:
+}
+
+Let $A = \begin{bmatrix}
+1 & 0 \\
+0 & 0
+\end{bmatrix}
+$
+For any $x = \begin{bmatrix} a \\ b \end{bmatrix}$,
+\[
+x^T A x = \begin{bmatrix} a & b \end{bmatrix}
+\begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}
+\begin{bmatrix} a \\ b \end{bmatrix}
+= \begin{bmatrix} a & b \end{bmatrix}
+\begin{bmatrix} a \\ 0 \end{bmatrix}
+= a^2
+\]
+$a^2 \geq 0$ always. So $A$ is positive semi-definite, but not positive definite.
+
+\mydef{Gram Matrix}{
+    Given vectors $x_1, x_2, \dots, x_n$ in $\mathbb{R}^d$, the \textbf{Gram matrix} $G$ is the $n \times n$ matrix whose entries are all possible dot products:
+$
+G_{ij} = x_i^T x_j
+$
+for $i, j = 1, \ldots, n$. Example:
+}
+
+Let
+$
+x_1 = \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \quad
+x_2 = \begin{bmatrix} 3 \\ 4 \end{bmatrix}
+$
+
+Compute all dot products:
+\begin{align*}
+x_1^T x_1 &= 1 \times 1 + 2 \times 2 = 1 + 4 = 5 \\
+x_1^T x_2 &= 1 \times 3 + 2 \times 4 = 3 + 8 = 11 \\
+x_2^T x_1 &= 3 \times 1 + 4 \times 2 = 3 + 8 = 11 \\
+x_2^T x_2 &= 3 \times 3 + 4 \times 4 = 9 + 16 = 25 \\
+\end{align*}
+Thus, the Gram matrix is
+\[
+G = \begin{bmatrix}
+x_1^T x_1 & x_1^T x_2 \\
+x_2^T x_1 & x_2^T x_2
+\end{bmatrix}
+=
+\begin{bmatrix}
+5 & 11 \\
+11 & 25
+\end{bmatrix}
+\]
+Note that, considering the vectors matrix $X = \begin{bmatrix}
+1 & 3 \\
+2 & 4
+\end{bmatrix}$. The Gram matrix is $X^T X$
+\[
+X^T = \begin{bmatrix}
+1 & 2 \\
+3 & 4
+\end{bmatrix}
+\qquad
+X^T X =
+\begin{bmatrix}
+1 & 2 \\
+3 & 4
+\end{bmatrix}
+\begin{bmatrix}
+1 & 3 \\
+2 & 4
+\end{bmatrix}
+=
+\begin{bmatrix}
+5 & 11 \\
+11 & 25
+\end{bmatrix}
+\]
+
+Properties of the Gram Matrix:
+\begin{itemize}
+    \item Symmetric: $G_{ij} = G_{ji}$.
+    \item Positive semi-definite (PSD): For any vector $c$,
+    $
+    c^T G c \geq 0
+    $
+\end{itemize}
+
+
+
+\mydef{Distance Measures}{
+    Quantify how far apart two objects are. \textit{Properties: }symmetrical, non-negative, triangle inequality (direct path is at least as short as any detour), etc.
+}
+
+\mydef{Similarity Measures}{
+    Quantify how similar or alike two objects are. \textit{Properties: }symmetrical and ranges from 0 (completely different) to 1 (completely alike)
+}
+
+\mydef{Metrics}{
+    Let $X$ be a set of data objects, $x,y,z \in X$. A \textbf{metric} is a distance function $d: X \times X \to \mathbb{R}$ that satisfies:
+}
+\begin{enumerate}
+    \item Non-negativity: $d(x,y) \geq  0 \quad \forall x,y \in X$
+    \item Identity of indiscernibles: $d(x,y) = 0 \Leftrightarrow x = y$
+    \item Symmetry: $d(x,y) = d(y,x)$
+    \item Triangle inequality: $d(x,z) \leq d(x,y) + d(y,z)$
+\end{enumerate}
+
+\mydef{Pseudometrics}{
+    Same as \textbf{metrics} but allow zero distance between different objects
+}
+\begin{enumerate}
+    \item Non-negativity: $d(x,y) \geq  0 \quad \forall x,y \in X$
+    \item $d(x,x) = 0$ and it is possible that $d(x,y) = 0 \quad x \neq y$
+    \item Symmetry: $d(x,y) = d(y,x)$
+    \item Triangle inequality: $d(x,z) \leq d(x,y) + d(y,z)$
+\end{enumerate}
+Example (Pseudometrics): 
+\[
+d(x, y) =
+  \begin{cases}
+    0 & \text{if } \operatorname{lowercase}(x) = \operatorname{lowercase}(y) \\
+    1 & \text{otherwise}
+  \end{cases} \qquad d(\text{Apple}, \text{apple}) = 0
+\]
+
+\mydef{Quasimetrics}{
+    A quasimetric is a distance function that \textit{relaxes} the symmetry requirement of a \textbf{metric} 
+}
+\begin{enumerate}
+    \item Non-negativity: $d(x,y) \geq  0 \quad \forall x,y \in X$
+    \item Identity of indiscernibles: $d(x,y) = 0 \Leftrightarrow x = y$
+    \item Triangle inequality: $d(x,z) \leq d(x,y) + d(y,z)$
+\end{enumerate}
+
+\minititle{From Distance to Similarity and Vice Versa}
+\mydef{Linear Scaling}{
+    $d(x,y) = 1 - \frac{s(x,y)}{s_{\text{max}}} \qquad s(x,y) = 1 - \frac{d(x,y)}{d_{\text{max}}}$
+}
+Example: $d(\text{cat}, \text{cat}) = 0 \qquad s(\text{cat}, \text{cat}) = 1$
+\commandnote{
+    Preserves relative differences in distances. Requires normalization of distances. Not suitable for unbounded distances.
+}
+
+\mydef{Reciprocal transformation}{
+    $s(x,y) = \frac{1}{1 + d(x,y)}$
+}
+Example: $d(\text{cat}, \text{dog}) = 2 \qquad s(\text{cat}, \text{dog}) = 0.33$
+\commandnote{
+    Keeps values bounded between 0 and 1. Works well when small distances should lead to high similarity. Sensitive to large distances, as similarity first decays quickly and then slowly.
+}
+
+\mydef{Exponential decay}{
+    $s(x,y) = e^{- \lambda d(x,y)} \quad \lambda=\frac{1}{\mu_d}$
+}
+Example:
+\begin{itemize}
+    \item $d(\text{cat}, \text{cat}) = 0$
+    \item $d(\text{cat}, \text{dog}) = 2$
+    \item $d(\text{cat}, \text{lion}) = 4$
+    \item $\mu_d = 2 \qquad \lambda = 0.5$
+    \item $s(\text{cat}, \text{cat}) = e^{- \lambda d(x,y)} = e^{0} = 1$
+    \item $s(\text{cat}, \text{dog}) = e^{- \lambda d(x,y)} = e^{-1} = 0.368$
+    \item $s(\text{cat}, \text{lion}) = e^{- \lambda d(x,y)} = e^{-2} = 0.135$
+\end{itemize}
+
+\commandnote{
+    Smoothly decreases similarity with increasing distance. Handles large distances better than reciprocal transformation. Requires tuning $\lambda$ and can be unintuitive when distances vary widely.
+}
+
+\mydef{Dot Product}{
+    For vectors $x,y \in \mathbb{R}^n \quad |x|=|y|$ their dot product is given by $x . y = \sum_{i=1}^n x_i y_i$
+}
+\begin{itemize}
+    \item Dot product between two vectors measure their \textbf{alignment}
+    \item It ranges from $- \infty$ to $+ \infty$
+    \item If $x$ and $y$ point in the same direction, then $x . y > 0$
+    \item If $x$ and $y$ point in opposite directions, then $x . y < 0$
+    \item If they are \textbf{orthogonal (perpendicular)}, then $x . y = 0$
+\end{itemize}
+
+\textbf{Remember (The Norms):}
+
+A norm on a vector space is a function $\|\cdot\|$ that satisfies:
+\begin{itemize}
+    \item Positive Definiteness: $\|x\| \geq 0$ with equality iff $x=0$
+    \item Homogeneity: $\| \lambda x\| = |\lambda| \|x\| $
+    \item Triangle Inequality: $\|x+y\| \leq \|x\| + \|y\|$
+\end{itemize}
+\textbf{Most Common Norms: $L_1, L_2, L_p, L_{\infty}$}
+
+$\|x\|_1 = \sum_{i=1}^n |x_i| \quad$
+$\|x\|_2 = \left( \sum_{i=1}^n |x_i|^2 \right)^{1/2} \quad$
+$\|x\|_p = \left( \sum_{i=1}^n |x_i|^p \right)^{1/p} \quad$
+$\|x\|_{\infty} = \text{max}_i |x_i|$
+
+\textbf{Note: }a norm \textit{induces} a \textbf{metric} $d(x,y) = \|x-y\|$ which satisfies:
+\begin{itemize}
+    \item $d(x,y) \leq 0$ and $d(x,y)=0$ iff $x=y$
+    \item $d(x,y) = d(y,x)$
+    \item $d(x,y) \leq d(x,y) + d(y,z)$
+\end{itemize}
+
+\mydef{Cosine Similarity}{
+    A normalized version of the \textbf{dot product}. It measures the angle between two vectors regardless their magnitude. $s_C (x,y) = cos(\theta_{x,y}) = \frac{x.y}{\left\lVert x\right\rVert_2 \left\lVert y \right\rVert_2}$
+}
+
+\commandnote{
+    Cosine similarity ranges from $-1$ (opposite direction) to $1$ (same direction), if they are orthogonal then $0$
+}
+
+\mydef{Cosine Distance}{
+    $d_{\text{cosine}}(x,y) = 1 - s_C(x,y)$. Range is $[0,2]$ (unintuitive)
+}
+\commandnote{Cosine Distance does not satisfy the triangle inequality}
+
+\mydef{Angular Distance}{
+    $d_{\text{angular}}(x,y) = \frac{\theta_{x,y}}{\pi} = \frac{\text{cos}^{-1} (s_C(x,y))}{\pi}$. Range is $[0,1]$
+}
+\commandnote{
+    Angular Distance satisfies the triangle inequality
+}
+
+\commandnote{
+    When comparing vectors of different magnitudes, neither cosine nor angular distance always respect the "identity of indiscernibles" axiom, meaning two different vectors can sometimes have zero distance under these measures if one is a scaled version of the other (colinear).
+}
+
+\textbf{Example: Cosine Distance Does Not Satisfy Identity of Indiscernibles}
+
+Let $x = [1,\,2]$ and $y = [2,\,4]$ (note $y = 2x$):
+
+\[
+\|x\|_2 = \sqrt{1^2 + 2^2} = \sqrt{5}
+\]
+\[
+\|y\|_2 = \sqrt{2^2 + 4^2} = \sqrt{20}
+\]
+\[
+x \cdot y = 1 \cdot 2 + 2 \cdot 4 = 10
+\]
+\[
+s_C(x, y) = \frac{10}{\sqrt{5}\sqrt{20}} = \frac{10}{10} = 1
+\]
+\[
+d_{\text{cosine}}(x, y) = 1 - 1 = 0
+\]
+
+But $x \neq y$, so the identity of indiscernibles is not satisfied.
+
+\textbf{Example: Cosine Distance Violates the Triangle Inequality}
+
+Let $x = [1,\,0]$, $y = [0,\,1]$, and $z = [1,\,1]$:
+
+\[
+d_{\text{cosine}}(x, y) = 1 - 0 = 1
+\]
+
+\[
+x \cdot z = 1 \cdot 1 + 0 \cdot 1 = 1
+\]
+\[
+\|z\|_2 = \sqrt{1^2 + 1^2} = \sqrt{2}
+\]
+\[
+s_C(x, z) = \frac{1}{1 \cdot \sqrt{2}} = \frac{1}{\sqrt{2}} \approx 0.707
+\]
+\[
+d_{\text{cosine}}(x, z) = 1 - 0.707 = 0.293
+\]
+Similarly, $d_{\text{cosine}}(y, z) \approx 0.293$
+
+But:
+\[
+1 \nleq 0.293 + 0.293 = 0.586
+\]
+So the triangle inequality is violated.
+
+\textbf{Example: Angular Distance Does Not Satisfy Identity of Indiscernibles}
+
+Let $x = [1,\,2]$ and $y = [2,\,4]$:
+
+\[
+s_C(x, y) = 1
+\]
+\[
+d_{\text{angular}}(x, y) = \frac{\arccos(1)}{\pi} = \frac{0}{\pi} = 0
+\]
+
+But $x \neq y$, so the identity of indiscernibles is not satisfied.
+
+\mydef{Euclidean (L2) Distance}{
+    $d_{\text{Euclidean}}(x,y) = \sqrt{\sum_{i=1}^n (x_i - y_i)^2}$ (L2 Norm of the difference vector)
+}
+
+It is the most commonly used distance measure in vector spaces. It represents the straight-line (geometric) distance between two points in Euclidean space.
+\commandnote{
+    Euclidean Distances satisfies all four metric properties. It is widely used in machine learning, clustering, nearest-neighbor search, etc., due to its intuitive geometric interpretation.
+}
+
+\mydef{Manhattan (L1) Distance (taxicab)}{
+    $d_{\text{Manhattan}}(x,y) = \sum_{i=1}^n |x_i - y_i|$ (L1 Norm of the difference vector)
+}
+
+It measures the shortest path between points if movement is restricted to axis-aligned steps (like navigating city blocks in a grid). It satisfies all four metric properties. It is often used in ML and clustering when axis-aligned movement makes sense.
+
+\mydef{Minkowski ($L_p$) Distance}{
+    $d_p (x,y) = \left( \sum_{i=1}^n |x_i - y_i|^p \right)^{1/p}$
+}
+
+\commandnote{
+    The larger $p$, the bigger the impact of the dimensions with the larger differences on the overall distance. The Minkowski distance satisfies all metric properties $\forall p \geq 1$
+}
+
+\mydef{Chebyshev ($L_{\infty}$) Distance}{
+    $d_{\infty}(x,y) = \text{max}_i |x_i - y_i|$
+}
+\begin{itemize}
+    \item Measures the greatest absolute difference between any coordinate of two vectors
+    \item It is the limit case of the Minkowski distance as $p \to \infty$
+    \item Useful for scenarios where only the largest coordinate difference matters
+    \item The unit ball (set of points at distance 1) under Chebyshev distance is a square in 2D
+\end{itemize}
+
+\minititle{Remember: Unit Ball}
+For a given norm (distance function) $\|\cdot\|$, the unit ball is the set of all points (vectors) whose distance from the origin is less than or equal to one. Formally, in $\mathbb{R}^n$: $B = \set{x \in \mathbb{R}^n \mid \|x\| \leq 1}$. For example, consider $\mathbb{R}^2$ and L2 Norm, $B$ is the set of points $(x_1,x_2)$ such that $\sqrt{(x_1)^2 + (x_2)^2} \leq 1$, i.e. $x_1^2 + x_2^2 \leq 1$.
+
+Remember, the circle of radius $r$ is the set of points $(x_1,x_2)$ such that $x_1^2 + x_2^2 = r^2$. Hence, unit ball of L2 norm is a circle.
+
+For a point $(x_1,x_2)$ the Chebyshev norm is $\text{max}(|x_1|,|x_2|)$. The unit ball for Chebyshev norm are the points $(x_1,x_2)$ where $\text{max}(|x_1|,|x_2|) \leq 1$. Hence, unit ball of $L_{\infty}$ is a square.
+
+For $L1$, the unit ball is all points $(x_1, x_2)$ such that $|x_1| + |x_2| \leq 1$. Hence, the unit ball is a diamond for $L1$.
+
+
+\minititle{Excursion}
+Let's pick a vector and compute two different norms:
+
+Let $x = (3, 4)$ in $\mathbb{R}^2$.
+\[
+\|x\|_1 = |3| + |4| = 7
+\]
+\[
+\|x\|_2 = \sqrt{3^2 + 4^2} = \sqrt{9 + 16} = \sqrt{25} = 5
+\]
+
+Let's try another two vectors:
+
+Let $y = (1, 0)$:
+\[
+\|y\|_1 = |1| + |0| = 1
+\]
+\[
+\|y\|_2 = \sqrt{1^2 + 0^2} = 1
+\]
+
+Let $z = (1, 1)$:
+\[
+\|z\|_1 = |1| + |1| = 2
+\]
+\[
+\|z\|_2 = \sqrt{1^2 + 1^2} = \sqrt{2} \approx 1.414
+\]
+
+Compare the Norms:
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Vector} & $\|x\|_1$ & $\|x\|_2$ & $\|x\|_2 \leq \|x\|_1$ & $\|x\|_1 \leq \sqrt{2}\|x\|_2$ \\
+\hline
+$(3,4)$   & $7$   & $5$       & $5 \leq 7$     & $7 \leq 7.07$ \\
+$(1,0)$   & $1$   & $1$       & $1 \leq 1$     & $1 \leq 1.41$ \\
+$(1,1)$   & $2$   & $1.414$   & $1.414 \leq 2$ & $2 \leq 2$ \\
+\hline
+\end{tabular}
+\end{center}
+
+In all cases,
+\[
+\|x\|_2 \leq \|x\|_1 \leq \sqrt{2}\|x\|_2
+\]
+
+The General Pattern: For any vector $x$ in $\mathbb{R}^2$,
+$
+\|x\|_2 \leq \|x\|_1 \leq \sqrt{2}\|x\|_2
+$.
+For $x$ in $\mathbb{R}^n$,
+$
+\|x\|_2 \leq \|x\|_1 \leq \sqrt{n}\|x\|_2
+$
+
+In the general equivalence of norms, $C_1$ and $C_2$ are the constants making the inequalities true for all vectors:
+\[
+C_1 \|x\|_2 \leq \|x\|_1 \leq C_2\|x\|_2
+\]
+
+For $L_1$ and $L_2$ in $\mathbb{R}^2$, these are $C_1 = 1$ and $C_2 = \sqrt{2}$:
+\[
+1 \cdot \|x\|_2 \leq \|x\|_1 \leq \sqrt{2}\cdot\|x\|_2
+\]
+
+
+\textbf{Theorem: }For any two norms $\|\cdot\|_a$ and $\|\cdot\|_b$ on a finite-dimensional vector space, there exist constants $C_1, C_2 > 0$ such that, for all vectors $x$:
+\[
+C_1 \|x\|_a \leq \|x\|_b \leq C_2 \|x\|_a
+\]
+
+
+\minititle{Correlation-Based Similarity}
+\begin{itemize}
+    \item Pearson $r$ quantities similarity as degree of linear correlation
+    \item Spearman $\rho$ quantities similarity as monotonicity of $x$ w.r.t $y$
+    \item $\text{corr}(x,y) \in [-1,1]$
+\end{itemize}
+
+\mydef{Kernel Function}{
+    A function $k(x, \bar{x})$ that computes the similarity between two input vectors $x$ and $\bar{x}$ and satisfies the following properties
+}
+\begin{enumerate}
+    \item Symmetry: $k(x, \bar{x}) = k(\bar{x}, x)$
+    \item Positive semi-definiteness: For any finite set $\set{x_1, \cdots, x_n}$ of vectors, the Gram matrix $K=(K_{ij}) \in \mathbb{R}^{n \times n}$ with entries $K_{ij}=k(x_i, x_j)$ is positive semi-definite (PSD), i.e. satisfies
+    \[
+    c^T Kc = \sum_{i=1}^{n} \sum_{j=1}^{n} c_i c_j k(x_i, x_j) \leq 0
+    \]
+    for all vectors of coefficients $c = (c_i) \in \mathbb{R}^n$
+\end{enumerate}
+\commandnote{
+    The definition of a kernel does not require that $k$ is non-negative.
+}
+
+\mydef{Linear Kernel}{
+    The simplest form of kernel (dot product similarity). $k(x, \bar{x}) = x \cdot \bar{x} = x^T \bar{x}$
+}
+
+Example: consider  
+$
+x = \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \quad
+\bar{x} = \begin{bmatrix} 3 \\ 4 \end{bmatrix}
+$
+Then $k(x, \bar{x}) = x^T \bar{x} = 1 \cdot 3 + 2 \cdot 4 = 3 + 8 = 11$
+
+Proof that linear kernel is PSD:
+
+For input vectors $x_1, x_2, \cdots, x_n$ our vectors matrix is $X = [x_1, x_2, \cdots, x_n]$ and the Gram matrix $K = X^T X$ (as shown previously)
+
+For any vector $c$, we have $c^T K c = c^T X^T X c = (Xc)^T (Xc) = \|Xc\|_2^2 \geq 0 \quad \forall c$
+
+\mydef{Gaussian (RBF) Kernel}{
+    The Gaussian (radial basis function) kernel is the most widely used kernel in the ML field. $k(x, \bar{x}) = exp(-\frac{\|x - \bar{x}\|_2^2}{2 \sigma^2})$
+}
+\begin{itemize}
+    \item small $\sigma \to$ kernel is more sensitive to distance between vectors 
+    \item large $\sigma \to$ kernel is less sensitive to distance between vectors 
+\end{itemize}
+
+\mydef{Polynomial Kernel}{
+    $k(x, \bar{x}) = (x^T \bar{x} + c)^d$. Where $d \geq 1$ is the degree. If $d=1$, the kernel captures linear relationships between the variables, if $d=2$, the kernel captures quadratic relationships, and so on. 
+}
+\commandnote{
+    The larger the constant $c \geq 0$ the smoother the similarity landscape (small differences get swallowed by $c$)
+}
+Example: let $c=1$ and $d=2$, and assume we have 1D data $x,y \in \mathbb{R}$ then $k(x,y) = (xy + 1)^2 = x^2y^2 + 2xy + 1$
+
+\textbf{Notice that }$x^2y^2 + 2xy + 1$ is the result of dot product between two feature vectors $\phi(x) = [x^2 , \sqrt{2} x, 1]$ and $\phi(y) = [y^2 , \sqrt{2} y, 1]$
+
+Which means that the kernel is \textit{implicitly} mapping our original 1D data $(x,y)$ into a 3D space. i.e., we can instead of transforming all data into higher dimensions, we just use the kernel function which gives us inner product result as if we had transformed.
+\begin{itemize}
+    \item A linear kernel only detects linear alignment between data points
+    \item A Polynomial kernel defines similarity in a much richer way: it says two inputs are similar if their higher-order features are similar, not just their values.
+\end{itemize}
+
+\mydef{Mercer’s Theorem}{
+    if $k$ is a symmetric and PSD kernel function, then there exists a feature map $\phi$ into a higher-dimensional space $D$ (possibly $\infty$) such that $k(x,y) = \phi(x) \cdot \phi(y)$
+}
+
+\commandnote{
+    In these higher-dimensional spaces, patterns may be detectable that are impossible or difficult to individuate in the original feature spaces.
+}
+
+\mydef{Kernel Trick}{
+    A method in machine learning that enables algorithms which depend only on inner products between data points to be generalized to nonlinear feature spaces.
+}
+
+\commandnote{
+    The kernel trick allows algorithms to operate in high- or infinite-dimensional feature spaces at the computational cost of operating in the original space, thereby enabling them to learn nonlinear patterns while remaining scalable.
+}
+
+Applications of the Kernel Trick in Machine Learning:
+\begin{itemize}
+    \item Support vector machines (SVMs): Supervised ML approach that implicitly fits separating hyperplanes in the higher-dimensional spaces.
+    \item Kernelized perceptron: Another supervised ML approach that uses the kernel trick to learn non-linear decision boundaries.
+    \item Kernel principal component analysis (kernel PCA): An extension of PCA that uses kernel functions to perform non-linear dimensionality reduction. It implicitly maps the data to a higher-dimensional space and then performs PCA in that space, allowing for the extraction of non-linear principal components.
+    \item Kernelized clustering (e.g., k-means): Clustering methods that use the kernel trick to implicitly compute distances in the higher-dimensional space, allowing for the identification of non-linear clusters in the original data space.
+\end{itemize}
+
+\mydef{Edit Distances}{
+    Ways to measure how different two structured objects are, typically strings, trees, or graphs.
+}
+\begin{itemize}
+    \item You define a set of basic operations that can “edit” one object into another. \textit{Examples for strings: }insert a character, delete a character, substitute one character for another.
+    \item Each operation has a cost (often 1 for each, but could be different).
+    \item The edit distance between two objects $S$ and $T$ is the minimum total cost needed to turn $S$ into $T$ by a sequence of allowed operations.
+\end{itemize}
+
+Edit distances always respect the triangle inequality. If you know a way to turn $A$ into $B$ with cost $d(A,B)$, and a way to turn $B$ into $C$ with $d(B,C)$, then you could do both sequences of edits to turn $A$ into $C$ at a total cost $d(A,B) + d(B,C)$
+
+Edit distances are generally not symmetric (Quasimetrics). The cost to edit $A$ into $B$ is not always the same as the cost to edit $B$ into $A$.
+
+\mydef{Levenshtein Distance (metric)}{
+    An edit distance for strings, defined as minimum number of single-character insertions, deletions, or substitutions needed to transform a source string $a$ into a target string $b$.
+}
+\[
+\begin{array}{ll}
+\textbf{Base Cases:} \\
+\quad \text{lev}(a, "") = |a| \\
+\quad \text{lev}("", b) = |b| \\[1em]
+\textbf{Recursive Cases:} \\
+\quad \text{lev}(a, b) =
+  \begin{cases}
+    \text{lev}(\text{tail}(a), \text{tail}(b)) & \text{if } \text{head}(a) = \text{head}(b) \\
+    1 + \min\left\{
+      \begin{array}{l}
+        \text{lev}(\text{tail}(a), b) \\
+        \text{lev}(a, \text{tail}(b)) \\
+        \text{lev}(\text{tail}(a), \text{tail}(b))
+      \end{array}
+    \right. & \text{if } \text{head}(a) \neq \text{head}(b)
+  \end{cases}
+\end{array}
+\]
+
+Example:
+\begin{align*}
+\text{lev}(\text{"kit"}, \text{"cat"}) 
+    &= \text{lev}(\text{"ki"}, \text{"ca"}) && \text{(heads: 't' = 't')} \\[1em]
+\text{lev}(\text{"ki"}, \text{"ca"})
+    &= 1 + \min \left\{
+        \begin{array}{l}
+            \text{lev}(\text{"k"}, \text{"ca"}) \\
+            \text{lev}(\text{"ki"}, \text{"c"}) \\
+            \text{lev}(\text{"k"}, \text{"c"})
+        \end{array}
+    \right. && \text{(heads: 'i' $\neq$ 'a')} \\[1em]
+\text{lev}(\text{"k"}, \text{"ca"})
+    &= 1 + \min \left\{
+        \begin{array}{l}
+            \text{lev}(\text{""}, \text{"ca"}) = 2 \\
+            \text{lev}(\text{"k"}, \text{"c"}) = 1 \\
+            \text{lev}(\text{""}, \text{"c"}) = 1
+        \end{array}
+    \right. (1 + \min\{1,1,0\}) \\[1em]
+\text{lev}(\text{"ki"}, \text{"c"})
+    &= 1 + \min \left\{
+        \begin{array}{l}
+            \text{lev}(\text{"k"}, \text{"c"}) = 1 \\
+            \text{lev}(\text{"ki"}, \text{""}) = 2 \\
+            \text{lev}(\text{"k"}, \text{""}) = 1
+        \end{array}
+    \right. \\[1em]
+\text{lev}(\text{"k"}, \text{"c"})
+    &= 1 + \min \left\{
+        \begin{array}{l}
+            \text{lev}(\text{""}, \text{"c"}) = 1 \\
+            \text{lev}(\text{"k"}, \text{""}) = 1 \\
+            \text{lev}(\text{""}, \text{""}) = 0
+        \end{array}
+    \right. \\[1em]
+\end{align*}
+Finally,
+\begin{align*}
+\text{lev}(\text{"ki"}, \text{"ca"})
+    &= 1 + \min\{2,2,1\} = 1 + 1 = 2 \\[1em]
+\text{lev}(\text{"kit"}, \text{"cat"})
+    &= \text{lev}(\text{"ki"}, \text{"ca"}) = 2
+\end{align*}
+
+\mydef{Graph Edit Distance (GED)}{
+    Given two graphs $G_1$ and $G_2$, $\text{GED}(G_1, G_2)$ is minimum cost of a sequence of edit operations that transform $G_1$ into a graph $\bar{G}_2$ that is \textbf{isomorphic} to $G_2$
+}
+
+\mydef{GED Edit Operations}{
+    There are six elementary edit operations: Insertions of isolated nodes, deletions of isolated nodes, attribute substitutions for nodes, deletions of edges, insertions of edges between existing nodes, attribute substitutions for edges.
+}
+
+\commandnote{
+    If "identity" means "isomorphism", then GED satisfies all pseudometric axioms. If "identity" means exact equality, then GED would be a metric.
+}
+
+\mydef{Shortest-Path Distance}{
+    Let $G=\langle V,E \rangle$ be a graph, and let $w: E \to \mathbb{R}_{\geq 0}$ assign a non-negative weight (cost) to each edge. The shortest-path distance from node $u$ to $v \in V$ is: $d_G(u,v) = \text{min}_P \sum_{e \in P} w(e)$
+}
+
+In other words: The shortest-path distance between two nodes is the smallest possible total cost to travel from $u$ to $v$ along the edges of the graph.
+
+\commandnote{
+    In undirected graphs with symmetric edge costs, Shortest-path distance is a metric. In directed graphs or graphs with asymmetric edge costs, Shortest-path distance is a quasimetric.
+}
+
+\minititle{Linkage Distances for Clusters of Data Objects}
+Consider we have a set of data objects $V$ that are grouped into $n$ clusters $\set{C_i, \cdots, C_n}$. And we also have a distance measure between individual objects $u,v \in V$ defined as $d_V : V \times V \to \mathbb{R}$.
+
+We want to define a distance measure between \textbf{clusters} ($d(C_i, C_j)$)
+
+\mydef{Linkage Distances}{
+    Ways to aggregate (combine) the distances between all pairs of points in two clusters, in order to get a single distance value between the clusters themselves.
+}
+
+\mydef{Single Linkage}{
+    $d_{SL}(C_i, C_j) = \text{min} \set{d_V(u,v) \mid (u,v) \in C_i \times C_j}$
+}
+
+For all possible pairs of points $(u,v)$ where $u \in C_i$ and $v \in C_j$ compute the distance $d_V(u,v)$ and take the smallest of these values. This is the minimum distance between the two clusters.
+
+\mydef{Complete Linkage}{
+    $d_{CL}(C_i, C_j) = \text{max} \set{d_V(u,v) \mid (u,v) \in C_i \times C_j}$ (maximum distance)
+}
+
+\mydef{Average Linkage}{
+    $d_{AL}(C_i, C_j) = (|C_i| \cdot |C_j|)^{-1} \sum_{u \in C_i} \sum_{v \in C_j} d_V(u,v)$ (mean distance)
+}
+i.e. for all possible pairs $(u,v)$, sum all the distance and divide by number of all possible pairs.
+
+\minititle{Sets Similarity and Distance}
+\mydef{Jaccard Similarity}{
+    For sets $A,B$, the Jaccard similarity is given by $J(A,B) = \frac{|A \cap B|}{|A \cup B|} \qquad \text{range} \to [0,1]$
+}
+
+\mydef{Jaccard Distance (metric)}{
+   $d_J(A,B) = 1 - \frac{|A \cap B|}{|A \cup B|}$
+}
+
+\mydef{Sørensen-Dice Similarity}{
+    $S(A,B) = \frac{2 |A \cap B|}{|A| + |B|}$. It is never smaller than the Jaccard index, $S(A,B) \geq J(A,B)$
+}
+
+\mydef{Sørensen-Dice Distance}{
+    $d_S(A,B) = 1 - \frac{2 |A \cap B|}{|A| + |B|}$
+}
+
+\commandnote{
+    The Sørensen-Dice “distance” fails the triangle inequality, so it is not a metric.
+}
+
+Proof by example:
+
+Let:
+\[
+A = \{1\}, \quad B = \{1,2\}, \quad C = \{2\}
+\]
+
+Compute the Sørensen-Dice similarity for each pair:
+\[
+S(A,B) = \frac{2|A \cap B|}{|A| + |B|} = \frac{2 \cdot 1}{1 + 2} = \frac{2}{3}
+\]
+\[
+S(B,C) = \frac{2|B \cap C|}{|B| + |C|} = \frac{2 \cdot 1}{2 + 1} = \frac{2}{3}
+\]
+\[
+S(A,C) = \frac{2|A \cap C|}{|A| + |C|} = \frac{2 \cdot 0}{1 + 1} = 0
+\]
+
+Compute the corresponding distances:
+\[
+d_S(A, B) = 1 - S(A,B) = 1 - \frac{2}{3} = \frac{1}{3}
+\]
+\[
+d_S(B, C) = 1 - S(B,C) = 1 - \frac{2}{3} = \frac{1}{3}
+\]
+\[
+d_S(A, C) = 1 - S(A,C) = 1 - 0 = 1
+\]
+
+Sum the distances for the triangle inequality:
+\[
+d_S(A, B) + d_S(B, C) = \frac{1}{3} + \frac{1}{3} = \frac{2}{3}
+\]
+But:
+\[
+d_S(A, C) = 1 > \frac{2}{3} = d_S(A, B) + d_S(B, C)
+\]
+
+\minititle{Binary Data}
+\mydef{Iverson bracket}{$[\text{True}] = 1$ and $[\text{False}] = 0$}
+
+\mydef{Hamming Distance (metric)}{
+    Quantifies the bit-wise difference between two binary arrays of the same size. For two binary arrays $A,B \in \set{0,1}^n$ it is defined as $\text{HD}(A,B) = \frac{1}{n} \sum_{i=1}^n [A_i \neq B_i]$
+}
+
 \end{document}
 
