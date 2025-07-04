@@ -3044,5 +3044,245 @@ d_S(A, C) = 1 > \frac{2}{3} = d_S(A, B) + d_S(B, C)
     Quantifies the bit-wise difference between two binary arrays of the same size. For two binary arrays $A,B \in \set{0,1}^n$ it is defined as $\text{HD}(A,B) = \frac{1}{n} \sum_{i=1}^n [A_i \neq B_i]$
 }
 
+
+\newpage
+\section{Data Bias}
+\mydef{Data Bias}{
+    Systematic distortion in the data that arises from how data is collected, measured, labeled, or represented.
+}
+
+\mydef{Algorithmic Bias}{
+    Bias that arises from how an algorithm processes data, sometimes amplifying or introducing new bias even if the data is fair.
+}
+
+\commandnote{
+    Data bias often leads to algorithmic bias
+}
+
+\textbf{Examples:}
+\begin{itemize}
+    \item A survey about workplace satisfaction is only distributed to office workers, not to remote workers. The data is biased because it misses the opinions of remote staff. (Data)
+    \item A job matching algorithm only looks at education level and ignores years of experience, unfairly filtering out skilled candidates with less formal education. (Algorithmic)
+\end{itemize}
+
+\mydef{Data Bias Modalities}{
+    Structural Bias, Measurement Bias, Representational Bias.
+}
+
+\mydef{Structural Bias}{
+    Systematic distortion in data that originates from social, institutional, or historical structures; it is embedded in the design of systems, policies, or practices and is often invisible or normalized within the processes that generate data.
+}
+
+\textbf{Examples:}
+\begin{itemize}
+    \item If police spend more time working in certain neighborhoods, the crime data will show more crimes in those areas, even if crime happens elsewhere too. The data is biased because of where police focus their efforts, not necessarily where crime actually happens.
+    \item If a health survey only collects responses from people who have internet access, it leaves out people without internet. This means the data doesn’t represent everyone’s health needs.
+    \item If school performance data is mostly collected from wealthy schools with more resources, the results won’t reflect what’s happening in underfunded schools. The data is biased because it misses less privileged students.
+    \item If a fitness tracker is only tested on young athletes, it may not work as well for older people or people with disabilities. The product’s data and performance are biased towards the group it was tested on.
+\end{itemize}
+
+\mydef{Sampling Bias}{
+    Occurs when the data collection process leads to a dataset that is not representative of the full population. Often influenced by experimental design, logistical, historical, or institutional constraints.
+}
+
+\textbf{Examples:}
+\begin{itemize}
+    \item Medical research relying heavily on data from urban hospitals, underrepresenting rural populations.
+    \item Overrepresentation of university students in behavior studies.
+    \item Surveys conducted during work hours, missing responses from people with full-time jobs.
+\end{itemize}
+
+\mydef{Historical Bias}{
+    Distortion in data that results from reflecting past social norms, policies, or practices, so even if current data collection is fair, the data remains biased because it captures and preserves the unfairness of the past.
+}
+
+\textbf{Examples:}
+\begin{itemize}
+    \item Employment records reflecting past gender discrimination in hiring.
+    \item Loan approval data influenced by decades of financial redlining.
+    \item Historical crime data shaped by over-policing of certain neighborhoods.
+\end{itemize}
+
+\mydef{Label Imbalance}{
+    One group or category in the data is much bigger than the others. For example, if a fraud detection dataset has way more “not fraud” examples than “fraud” examples, a model trained on it might miss most fraud cases.
+}
+
+\mydef{Missing Annotations}{
+    When some data points don’t have labels or extra information (like demographic details). This can cause the model to miss hidden patterns or be biased, especially if the missing information isn’t random.
+}
+
+\mydef{Availability Bias}{
+    When you only collect data from sources that are easy to reach, so your dataset is not representative. For instance, if you analyze opinions on Twitter, you might miss people who don’t post much or have private accounts.
+}
+
+\mydef{Survivorship Bias}{
+    When you only look at the “winners” or those who made it through a process, and ignore the “losers” or those who dropped out. This leads to false conclusions, like thinking all startups are successful if you only study the ones that survived.
+}
+
+\mydef{Measurement Bias}{
+    Stems from how data is captured or labeled. Can result from specifics of measurement instruments or inconsistent labelling. Example: Imaging data generated with different scanners can have systematic differences.
+}
+
+\mydef{Experimental and technical bias}{
+    Occurs when the way data is created or measured introduces systematic error. This can be due to the design of the experiment, the equipment used, or how the data is processed. For instance, in pathology, the way tissue samples are fixed (preserved) before analysis can change the results. This means:
+}
+\begin{itemize}
+    \item The analysis might not reflect real tissue properties (“misrepresentation”).
+    \item Data from different labs might not be comparable (“inconsistency”), because they use different fixation methods.
+\end{itemize}
+
+\mydef{Human Labeling (Annotation) Bias}{
+    Bias introduced during manual labeling or annotation of data, often due to human subjectivity, inconsistency, or lack of context.
+}
+
+\textbf{Sources of annotation bias:} lack of clear guidelines or ambiguous labeling criteria, inattention during the annotation process, or annotators’ cultural background, personal beliefs, or implicit biases.
+
+\textbf{Note: }There is almost no manually labeled dataset that is entirely free of labeling bias!
+
+\textbf{Examples:}
+\begin{itemize}
+    \item Medical image annotations varying between radiologists with different training.
+    \item Toxicity labeling in online comments differing across cultures and languages.
+\end{itemize}
+
+\textbf{Impact:}
+\begin{itemize}
+    \item If there is a strong annotation bias in the data, it can lead to inconsistent ground truth and unreliable model training and evaluation.
+    \item When benchmarking AI models on manually annotated data, it does not make sense to compare model accuracy beyond the expected error in the manual annotation process.
+\end{itemize}
+
+\mydef{Proxy Variables}{
+    Indirect measure used as a substitute for a concept that is difficult to observe or quantify directly. E.g. \textit{BMI} $\to$ metabolic health $=\frac{\text{Body Mass (kg)}}{(\text{Body Height (m)})^2}$
+}
+
+Proxies may carry hidden biases or assumptions. They may correlate with sensitive attributes (e.g., socio-cultural background, gender) even if unintentionally. The relationship between the proxy and the true target can vary across contexts.
+
+\mydef{Temporal Bias}{
+    Occurs when data collected at one point in time no longer reflects current patterns, leading to degraded model performance or flawed conclusions.
+}
+
+There are different sources of temporal bias, for example: changes in population behavior / environment / technology, shifts in clinical practices / diagnostic criteria / coding standards, or introduction of new policies / medications / treatments.
+
+\textbf{Examples:}
+\begin{itemize}
+    \item Consumer behavior data: Gradual shifts in online shopping habits, as more users adopt mobile shopping over desktop, unnoticed by models trained on older data.
+    \item Financial predictions: Gradual changes in credit risk due to evolving economic conditions, where the same factors no longer predict creditworthiness as reliably.
+\end{itemize}
+
+\mydef{Representational Bias}{
+    Occurs when some demographic groups are underrepresented in the data. Can lead to poor generalizability of model or result to underrepresented populations. 
+}
+
+\mydef{Demographic imbalance}{
+    Data often reflects the demographics of its source, leading to overrepresentation of majority or dominant groups. E.g., Facial recognition datasets overrepresent lighter-skinned individuals.
+}
+
+\mydef{Aggregation Bias}{
+    Occurs when a model is trained on pooled data without accounting for group-specific differences. It assumes one-size-fits-all and fails to capture group-driven variability. E.g., A medical diagnostic model performs well for adults but poorly for children due to physiological differences.
+}
+
+Large language models (LLMs) and other foundation models use language data to learn patterns, but this language data already contains societal norms, stereotypes, and power structures. These biases are embedded in the model’s core representations, which rely on breaking language into tokens (sub-words) and mapping those tokens into numerical vectors, called embeddings.
+
+The process starts with tokenization, where a dictionary of tokens is created and input text is split into these tokens. Then, each token is mapped to a numeric vector through token embeddings. Biases can enter and be reinforced at multiple points in this process. For instance, tokenization can favor words from languages that are more prevalent in the training data, making those languages easier to represent and disadvantaging less common ones.
+
+Embeddings themselves can also reflect societal biases. For example:
+\begin{itemize}
+    \item In the tokenization stage, words from dominant languages are often represented more efficiently than those from underrepresented languages.
+    \item In the embedding stage, word associations can reinforce stereotypes, such as linking “doctor” with “he” and “nurse” with “she.”
+\end{itemize}
+
+These biases mean that the models may perform better for dominant languages and groups, and they can propagate stereotyped or unfair associations. Similar problems also affect foundation models in domains beyond language, wherever the training data carries built-in biases.
+
+\subsection*{Metrics for Measuring Bias of Predictive Models}
+We want to assess if a predictive model that outputs a prediction $\hat{Y}$ is biased by a potential confounder $A$. For simplicity, assume that both the target variable $Y$ and the confounder $A$ are binary. Common metrics exist for such purpose, examples:
+\begin{itemize}
+    \item Demographic Parity (Statistical Parity): Outcome should be independent of protected attribute.
+    \[
+    P(\hat{Y}=1 \mid A=a) = P(\hat{Y}=1 \mid A=b)
+    \] 
+    \item Equal Opportunity: True positive rates should be equal across groups.
+    \[
+    P(\hat{Y}=1 \mid Y=1, A=a) = P(\hat{Y}=1 \mid Y=1, A=b)
+    \]
+    \item Equalized Odds: Both True positive rates and False positive rates should be equal across groups.
+    \[
+    P(\hat{Y}=y \mid Y=y, A=a) = P(\hat{Y}=y \mid Y=y, A=b) \quad \forall y
+    \]
+    \item Predictive Parity: Positive predictive value (precision) should be equal across groups.
+    \[
+    P(Y=1 \mid \hat{Y}=1, A=a) = P(Y=1 \mid \hat{Y}=1, A=b)
+    \]
+\end{itemize}
+
+\subsection*{Bias Detection in Different Types of Data}
+\minititle{Text Data}
+\begin{itemize}
+    \item Analyze word embeddings for stereotype associations, e.g., via WEAT (“Word Embedding Association Test”).
+    \item Compute similarity (e.g., cosine similarity) between embeddings of two sets of target words (e.g., male vs. female names) and two sets of attribute words (e.g., career vs. family words).
+    \item Bias score: If one target group (e.g., male) is systematically closer to one attribute group (e.g., career) than the other (e.g., female), the embedding is said to exhibit bias.
+\end{itemize}
+
+\minititle{Image Data}
+\begin{itemize}
+    \item Check for over/under-representation of demographic groups.
+    \item Use saliency maps and other explainable AI techniques to reveal model attention biases.
+\end{itemize}
+
+\minititle{Tabular Data}
+\begin{itemize}
+    \item Audit feature correlations with potential sources of data bias.
+    \item Apply fairness metrics (e.g., demographic parity, equal opportunity).
+    \item Use feature attribution techniques and other explainable AI methods to explain biased outcomes.
+\end{itemize}
+
+\subsection*{Mitigation Strategies}
+\minititle{Data Preprocessing Techniques}
+\mydef{Principal Component Analysis (PCA)}{
+    A method that transforms the data into key directions capturing most of the variance. If you find that some of these directions are highly correlated with sources of bias (like gender or which lab the data came from), you can remove those, so the model is less likely to use biased information.
+}
+
+\mydef{Normalization and Transformation}{
+    Standardizing or normalizing features prevents models from favoring attributes with larger scales. Techniques such as log-transformations can help reduce skewness tied to group disparities.
+}
+
+\minititle{Reweighing}
+Reweighing is a bias mitigation strategy that doesn’t alter the data but changes how much each data point “counts” during training.
+\begin{itemize}
+    \item You assign higher weights to underrepresented groups or outcomes, so the model learns more from them.
+    \item This can help equalize group representation in model predictions.
+\end{itemize}
+The method keeps the original data unchanged and is easy to use if your modeling approach supports weights. However, you need to know which groups are underrepresented, and if the data is extremely imbalanced, this method might not be enough.
+
+\minititle{Resampling}
+Resampling is a way to deal with imbalanced datasets by either increasing the number of samples from underrepresented groups (oversampling) or decreasing samples from overrepresented groups (undersampling)
+
+Oversampling can be done by simply duplicating samples or by creating new, synthetic ones. Synthetic data can be generated by altering existing data (e.g. rotate images) or by interpolating between samples (e.g. SMOTE). These methods help the model learn from all groups more equally.
+
+The approach is straightforward, but oversampling can cause the model to memorize data (overfitting), and undersampling might throw away useful information.
+
+\textbf{What is SMOTE? } Synthetic Minority Oversampling Technique (SMOTE) is a method used to balance class distribution in imbalanced datasets by creating new, synthetic samples for the minority class. It generates these synthetic samples by interpolating between existing minority class examples, rather than simply duplicating them, which helps models learn from a more diverse set of data points.
+
+The general steps (simplified) are as follows:
+\begin{enumerate}
+    \item For each minority-class sample $x$, compute the $k$ nearest minority-class neighbors, using some appropriate distance measure.
+    \item Randomly select a nearest neighbor $\bar{x}$ of $x$.
+    \item Randomly select a number $r \in [0,1]$.
+    \item Add point at position $r$ on line between $x$ and $\bar{x}$ as a new synthetic sample for the minority class.
+    \item Repeat this process until enough synthetic samples have been generated.
+\end{enumerate}
+
+\commandnote{
+    The most crucial step in dealing with data bias is being aware that bias might exist, especially hidden or subtle bias. Most mitigation techniques only work if you already know where the bias could come from, so it’s essential to understand how the data was generated. If you build models without this understanding, you risk making serious mistakes. Talking to domain experts helps to really know what your data represents and how it was collected.
+}
+
+\minititle{Bias Mitigation Measures in ChatGPT}
+\begin{itemize}
+    \item Data curation: Filtering and deduplication of pretraining data to reduce harmful and overrepresented content.
+    \item Reinforcement learning from human feedback (RLHF): Fine-tuning using human preferences that reward helpful, harmless, and unbiased responses.
+    \item Content moderation: Safety layers detect and block harmful or biased inputs and outputs in real time.
+    \item Bias testing: Evaluation with benchmarks to detect and measure bias over time.
+    \item Instruction tuning and guardrails: Post-training interventions help reduce overconfidence and encourage responsible language use.
+    \item User feedback: Reports and ratings from users inform continuous improvements and fine-tuning.
+\end{itemize}
 \end{document}
 
