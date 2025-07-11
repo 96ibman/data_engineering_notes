@@ -3284,5 +3284,946 @@ The general steps (simplified) are as follows:
     \item Instruction tuning and guardrails: Post-training interventions help reduce overconfidence and encourage responsible language use.
     \item User feedback: Reports and ratings from users inform continuous improvements and fine-tuning.
 \end{itemize}
+
+\newpage
+\section{Outlier Detection}
+\mydef{Outlier Detection}{
+    The process of identifying data points that deviate from the normal data. The challenge is in defining what normal means.
+}
+
+Notions of Outlierness:
+\begin{itemize}
+    \item Deviation from Center: Classic idea of being far from the mean or median.
+    \item Deviation from Trend: A point may follow a different pattern even if it is not far from the center in a geometric sense.
+\end{itemize}
+
+\commandnote{
+    Normality is contextual: The appropriate notion of normality depends on the nature and distribution of the data.
+}
+
+Sources of Outliers:
+\begin{itemize}
+    \item Errors: Mistakes during data entry or sensor failures.
+    \item Rare but significant events: For example, fraudulent transactions or hardware failures.
+    \item Emerging patterns: Genuinely novel behaviors or trends not seen in training or historical data.
+\end{itemize}
+
+\minititle{Why Does Outlier Detection Matter?}
+We might detect outliers to \textbf{remove noise} from data because outliers caused by noise or technical errors can skew our results. Hence, removing them improves data quality and the robustness of any downstream analysis.
+
+On the other hand, we might want to \textbf{detect critical issues} early, for example:
+\begin{itemize}
+    \item Fraud Detection: Spot irregular financial activity.
+    \item Quality Control: Detect anomalies in manufacturing that could indicate defects.
+    \item Cybersecurity: Flag abnormal system or network activity.
+    \item Healthcare: Identify rare or abnormal clinical measurements that may signal serious conditions.
+    \item Finance: Catch unusual market behavior or trading patterns early.
+\end{itemize}
+
+\mydef{Types of Outliers}{
+    Point, Contextual, and Collective Outliers.
+}
+
+\mydef{Point Outliers}{
+    A single data point deviates significantly from all others. Example: A sudden temperature spike in a weather dataset.
+}
+
+\mydef{Contextual Outliers}{
+    A value that is only abnormal in a given context or condition. Example: A warm winter day may be abnormal for the season, even if the temperature itself isn’t extreme.
+}
+
+\mydef{Collective Outliers}{
+    A group of data points that together behave unusually. Example: A sequence of failed login attempts from a single IP address.
+}
+
+\mydef{Global vs. Local Outliers}{
+    An outlier can be \textbf{global} if it is relative to the entire dataset. If it is within its local neighborhood or cluster, then it is \textbf{local}. Example: A data point might blend into the dataset globally but still stand out when compared to nearby points.
+}
+
+\minititle{Challenges in Outlier Detection}
+\begin{itemize}
+    \item High Dimensionality: In high dimensions, distances become less meaningful (curse of dimensionality).
+    \item Scale and Variability: Features may have different scales (e.g. age in years vs. income in dollars). Data needs normalization or standardization to avoid misleading distances. High within-class variability can mask outliers.
+    \item Noise and Data Quality: Noisy data can falsely appear as outliers. Missing or inconsistent data complicates both detection and evaluation.
+    \item Defining “Normal”: There’s no universal definition of normal. Behavior considered normal today might become anomalous tomorrow (concept drift).
+\end{itemize}
+
+\minititle{Outlier Detection Techniques (Overview)}
+\begin{itemize}
+  \item \textbf{Statistical Methods}
+  \begin{itemize}
+    \item Assume a known distribution (e.g., Gaussian).
+    \item Outliers are data points in low-probability regions.
+    \item Example: Z-score thresholding.
+  \end{itemize}
+
+  \item \textbf{Distance-Based Methods}
+  \begin{itemize}
+    \item Outliers are far from most other points.
+    \item Based on distances to $k$ nearest neighbors.
+    \item Example: $k$-NN outlier detection.
+  \end{itemize}
+
+  \item \textbf{Density-Based Methods}
+  \begin{itemize}
+    \item Compare local density of a point with its neighbors.
+    \item Outliers reside in lower-density regions.
+    \item Example: Local Outlier Factor (LOF).
+  \end{itemize}
+
+  \item \textbf{Model-Based Methods}
+  \begin{itemize}
+    \item Build a model of normal data behavior.
+    \item Points poorly explained by the model are outliers.
+    \item Examples: Isolation Forests, Autoencoders, Regression residuals.
+  \end{itemize}
+\end{itemize}
+
+\mydef{Evaluating Outlier Detection Methods}{
+    Precision at k (P@k) and Average Precision (AP)
+}
+
+\subsection*{Precision at k (P@k)}
+Consider a dataset $X$ with $n$ data points, and a subset $O \subsetneq X$ with $m$ true outliers (ground truth). And consider we have an outlier detection method that ranks all data points from most to least suspicious $x_1, \cdots ,x_n$.
+
+Using Precision at k (P@k) we can know out of the top $k$ ranked data points, how many are actually true outliers.
+\[
+P@k = \frac{1}{k} \cdot | x \in O \mid \text{rank}(x) \leq k | \qquad \text{where rank}(x) = i \text{ if }x=x_i \text{ in the model output ranking}
+\]
+Example: suppose $n=10$ data points and the true outliers are $O = \set{x_3, x_7}, m=2$. Assume an outlier detection method ranks the points as $[x_5, x_3, x_1, x_9, x_2, x_7, x_4, x_6, x_8, x_{10}]$
+
+Let’s compute $P@k$ for a few values of $k$:
+
+$P@1 = \frac{1}{1} \cdot \left| \{x \in \{x_3, x_7\} \mid \text{rank}(x) \leq 1 \} \right| = \frac{1}{1} \cdot 0 = 0$
+
+$P@2 = \frac{1}{2} \cdot \left| \{x \in \{x_3, x_7\} \mid \text{rank}(x) \leq 2 \} \right| = \frac{1}{2} \cdot 1 = 0.5$
+
+$P@3 = \frac{1}{3} \cdot \left| \{x \in \{x_3, x_7\} \mid \text{rank}(x) \leq 3 \} \right| = \frac{1}{3} \cdot 1 \approx 0.33$
+
+$P@6 = \frac{1}{6} \cdot \left| \{x \in \{x_3, x_7\} \mid \text{rank}(x) \leq 6 \} \right| = \frac{1}{6} \cdot 2 \approx 0.33$
+
+Maximum possible value of $P@k$: $\text{max}P@k = \text{min}\set{1, \frac{m}{k}}$, i.e. if we select $k$ points and all true outliers are in the top $k$, then the most we can get is either $1$ if $m \geq k$ (perfect precision) or $\frac{m}{k}$ if $m \lneq k$.
+
+\textbf{Example:}
+\begin{itemize}
+  \item Total data points: $n = 5$
+  \item True outliers: $O = \{x_2, x_4\}$, so $m = 2$
+  \item Model ranking: $[x_3, x_2, x_1, x_4, x_5]$
+\end{itemize}
+
+Compute $P@k$ and max $P@k$ for $k = 1$ to $5$:
+\begin{tabular}{|c|c|c|c|}
+\hline
+$k$ & Top-$k$ Ranked Points & $P@k$ (Actual) & Max $P@k = \min\left\{1, \frac{m}{k} \right\}$ \\
+\hline
+1 & $[x_3]$ & $\frac{0}{1} = 0$ & 1 \\
+2 & $[x_3, x_2]$ & $\frac{1}{2} = 0.5$ & 1 \\
+3 & $[x_3, x_2, x_1]$ & $\frac{1}{3} \approx 0.33$ & $\frac{2}{3} \approx 0.67$ \\
+4 & $[x_3, x_2, x_1, x_4]$ & $\frac{2}{4} = 0.5$ & $\frac{2}{4} = 0.5$ \\
+5 & $[x_3, x_2, x_1, x_4, x_5]$ & $\frac{2}{5} = 0.4$ & $\frac{2}{5} = 0.4$ \\
+\hline
+\end{tabular}
+
+\commandnote{
+\begin{itemize}
+  \item Max $P@k$ is the best possible precision achievable at each $k$ if all outliers are ranked at the top.
+  \item Actual $P@k$ depends on your model’s output. It can match max $P@k$ if your model ranks perfectly.
+\end{itemize}
+}
+
+\mydef{Expected Value under random ordering}{
+The expected value of P@k under random ordering is what we expect just by chance, i.e. if the ranking is random:
+}
+\[
+\mathbb{E}[P@k] = \frac{1}{k} \sum_{x \in O} \mathbb{P}[\text{rank}(x) \leq k] 
+\]
+
+Where $\mathbb{P}[\text{rank}(x) \leq k]$ is the probability that the data point $x$ is ranked among the top $k$ positions. Since each point is equally likely to appear anywhere in a random order, we have:
+\[
+\mathbb{P}[\text{rank}(x) \leq k] = \frac{k}{n}
+\]
+So:
+\[
+\mathbb{E}[P@k] = \frac{1}{k} \sum_{x \in O} \frac{k}{n} = \frac{1}{k} \cdot m \cdot \frac{k}{n} = \frac{m}{n} \qquad
+\text{For the previous example, we have }\frac{2}{5} = 0.4
+\]
+
+\mydef{Adjusted P@k}{
+It tells us how much better our model's ranking is compared to random guessing, scaled relative to the best possible performance.
+}
+\[
+\text{Adjusted P@k }= \frac{P@k - \mathbb{E}[P@k]}{\text{max}P@k - \mathbb{E}[P@k]}
+\]
+\begin{itemize}
+    \item $1 \to$ model is perfect (P@k = max P@k)
+    \item $0 \to$ model is as good as random (P@k = expected P@k)
+    \item $<0 \to$ model is worse than random (P@k $<$ expected P@k) 
+\end{itemize}
+In the previous example case, assume we picked $k=2$, then the Adjusted P@2 is $\frac{0.5 - 0.4}{1 - 0.4} \approx 0.167$ That means our model is only slightly better than random (0.167 out of 1)
+
+In a nutshell, for $k=2$, we have:
+\begin{itemize}
+    \item Max precision we can get: 1 (by ranking both outliers in top 2)
+    \item Precision: 0.5 (we got one of them, we are closer to random)
+    \item Average under random ordering: 0.4 
+    \item Adjusted Precision: 0.167
+\end{itemize}
+
+\textbf{Problem with P@k}
+Lets say we have $n=10,000$ and $m=10$ (only 10 true outliers) and the model ranks all outliers between positions $11$ and $20$ (the top 10 ranked are not outliers), then P@10 = 0.
+
+\textbf{Solution: }Average Precision (AP): Instead of fixing one $k$, look at the models ranking of the actual outliers, and average the precision at each of their positions.
+\[
+\text{AP} = \frac{1}{m} \sum_{x \in O}P@(\text{rank}(x))
+\]
+Where $\text{rank}(x)$ is the position of true outlier $x$ in the models ranked list and $P@(\text{rank}(x))$ is the precision at that position.
+
+So we compute the precision only at the ranks where true outliers appear, and average that.
+
+Example, $n=5, O=\set{x_2, x_4}$, model output: $[x_1,x_3, x_2, x_4, x_5]$ 
+\[
+\text{AP} = \frac{1}{2} P@(\text{rank}(x_2)) + P@(\text{rank}(x_4)) = \frac{1}{2} (P@3 + P@4) =\frac{0.33 +  0.5}{2} = 0.415  
+\]
+This tells us that, on average, when our model hits a true outlier, the precision at that point in the ranking is about 41.5\%.
+
+\textbf{Note: }Max possible AP is 1.
+
+\minititle{Expected Value of AP under random ranking}
+\[
+\mathbb{E}[\text{AP}] = \frac{1}{m} \sum_{x \in O} \mathbb{E}[P@\text{rank}(x)] =
+\frac{1}{m} \sum_{x \in O} \frac{m}{n} =
+\frac{1}{m} \cdot m \cdot \frac{m}{n} = 
+\frac{m \cdot m}{m \cdot n} = \frac{m}{n}
+\]
+
+\minititle{Adjusted AP}
+\[
+\text{Adjusted AP} = \frac{\text{AP} - \frac{m}{n}}{1 - \frac{m}{n}}
+\]
+
+This tells us how far above random our AP is, scaled relative to the best possible AP (which is 1).
+\begin{itemize}
+    \item $= 1$ \quad model ranks all outliers perfectly (AP = 1)
+    \item $= 0$ \quad model performs no better than random (AP = $\frac{m}{n}$)
+    \item $< 0$ \quad model ranks outliers worse than random (AP  $<\frac{m}{n}$)
+\end{itemize}
+
+\subsection*{Isolation Forests (Overall Idea)}
+Assume dataset $X = \set{x_1, \cdots, x_n}$, with $x_i \in \mathbb{R}^d$. We consider a point an outlier if it can be easily separated from the rest of the data.
+
+The high level work flow:
+\begin{enumerate}
+    \item Randomly select a subsample $\bar{X} \subseteq X$
+    \item Recursively split $\bar{X}$ by:
+    \begin{enumerate}
+        \item Choosing a random feature $j \in \set{1, \cdots, d}$
+        \item Choosing a random threshold $\tau$ along that feature
+    \end{enumerate}
+    \item Continue splitting until:
+    \begin{enumerate}
+        \item The data point is isolated (in a node by itself), or
+        \item A maximum depth is reached
+    \end{enumerate}
+    \item Repeat the process multiple times to build a forest of such trees
+    \item A data point is scored as an outlier if it consistently gets isolated with fewer splits (i.e., ends up closer to the root)
+\end{enumerate}
+
+\subsection*{Isolation Trees}
+\minititle{Isolation Trees}
+The core data structure for isolation forests. Each inner node is defined as $(S,h, j, \tau, l, r)$ where:
+\begin{itemize}
+    \item $S$: the set of points currently at this node
+    \item $h$: the height (depth) of this node in the tree
+    \item $j \in \set{1, \cdots, d}$: randomly chosen split feature
+    \item $\tau$: randomly chosen threshold for that feature
+    \item $l$: left child node = points with $x_j < \tau$
+    \item $r$: right child node = points with $x_j \geq \tau$
+\end{itemize}
+The root is just the top node with $S = X$ and $h=0$
+
+A node becomes a leaf node if any of the following holds:
+\begin{enumerate}
+    \item It contains only one point (point is isolated)
+    \item All points in it are identical
+    \item The current depth $h$ reaches a pre-defined limit $h_{\text{lim}}$
+\end{enumerate}
+
+\minititle{Isolation Tree Construction Algorithm}
+Given a dataset $X$ and a maximum height parameter $h_{\text{lim}}$, construct an isolation tree as follows:
+
+\begin{enumerate}
+    \item Initialize:
+    \begin{itemize}
+        \item Tree $T \gets \emptyset$
+        \item Queue of open nodes $O \gets \{ o \}$, where $o = (S = X, h = 0, \cdot, \cdot, \cdot, \cdot)$
+    \end{itemize}
+    
+    \item While $O \neq \emptyset$:
+    \begin{enumerate}
+        \item Remove a node $v$ from $O$
+        \item If $v$ satisfies any leaf condition:
+        \begin{itemize}
+            \item (1) $|S| = 1$, or
+            \item (2) all points in $S$ are identical, or
+            \item (3) $h \ge h_{\text{lim}}$
+        \end{itemize}
+        then add $v$ to $T$
+        \item Else:
+        \begin{itemize}
+            \item Choose a random split feature $j \in \{1, \dots, d\}$
+            \item Choose a random threshold $\tau \in [\min(x_j), \max(x_j)]$
+            \item Split $S$ into:
+            \begin{itemize}
+                \item $S_l = \{ x \in S \mid x_j < \tau \}$
+                \item $S_r = S \setminus S_l$
+            \end{itemize}
+            \item Create left and right children:
+            \begin{itemize}
+                \item $l = (S_l, h+1, \cdot, \cdot, \cdot, \cdot)$
+                \item $r = (S_r, h+1, \cdot, \cdot, \cdot, \cdot)$
+            \end{itemize}
+            \item Add $v$ to $T$, and add $l$, $r$ to $O$
+        \end{itemize}
+    \end{enumerate}
+
+    \item Return tree $T$
+\end{enumerate}
+
+\minititle{Example: Building an Isolation Tree (2D Data)}
+
+\textbf{Dataset:} 3 points in $\mathbb{R}^2$
+
+\[
+\begin{array}{|c|c|c|}
+\hline
+\text{Point} & x & y \\
+\hline
+A & 1 & 3 \\
+B & 2 & 2 \\
+C & 4 & 6 \\
+\hline
+\end{array}
+\]
+
+\begin{enumerate}
+    \item \textbf{Root node:} $S = \{A, B, C\}$, $h = 0$
+    \begin{itemize}
+        \item Randomly choose feature $j = 1$ (i.e., $x$)
+        \item Randomly pick threshold $\tau = 2.5$
+        \item Split:
+        \begin{itemize}
+            \item Left: $x < 2.5 \Rightarrow \{A, B\}$
+            \item Right: $x \ge 2.5 \Rightarrow \{C\}$ (leaf node)
+        \end{itemize}
+    \end{itemize}
+
+    \item \textbf{Left child:} $S = \{A, B\}$, $h = 1$
+    \begin{itemize}
+        \item Randomly choose feature $j = 2$ (i.e., $y$)
+        \item Randomly pick threshold $\tau = 2.5$
+        \item Split:
+        \begin{itemize}
+            \item Left: $y < 2.5 \Rightarrow \{B\}$ (leaf)
+            \item Right: $y \ge 2.5 \Rightarrow \{A\}$ (leaf)
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Final Tree Structure:}
+
+\begin{verbatim}
+        Root: x < 2.5
+        /         \
+   y < 2.5       Leaf: {C}
+    /    \
+{B}      {A}
+\end{verbatim}
+
+\minititle{From Tree to Forest}
+An Isolation Forest is $\mathcal{F} = \set{(T, \bar{X}) \mid \bar{X} \subseteq X}$ with each isolation tree $T$ built on a different $\bar{X}$
+
+Subsets $\bar{X}$ are sampled without replacement from the full dataset. Each subset has size $\psi$, where $\psi \leq n$ (hyperparameter), the default is $\psi = \text{min}(n, 256)$
+
+Another hyperparameter is $| \mathcal{F} |$ (number of trees), by default $=100$
+
+\commandnote{
+    We use subsampling to (a) sparsify the data, i.e. remove dense regions that can mask outliers hence make outliers more visible. (b) cover different views because each sparse subsample may expose different outlier patterns hence increase robustness and generalizability
+}
+
+\minititle{Outlier Score}
+Given an isolation forest $\mathcal{F}$ and a data point $x \in X$, we want to define an outlier score $s(x) \in (0,1)$.
+
+First we should identify trees containing $x$:
+\[
+\mathcal{F}(x) = \set{T \in \mathcal{F} \mid x \text{ was included in the training subset }\bar{X} \text{ for tree }T}
+\]
+
+Then we should compute path lengths, for each tree $T \in \mathcal{F}(x)$, compute:
+\[
+\ell_T (x) = \text{path length from root to leaf that isolates }x 
+\]
+Then we average all path lenghts:
+\[
+\ell(x) = \frac{1}{| \mathcal{F}(x) |} \sum_{T \in \mathcal{F}(x)} \ell_T (x)
+\]
+
+This is the average number of splits needed to isolate $x$. 
+
+Next we should normalize with expected value. Let $c(\psi)$ be the expected path length in a random tree of size $\psi$. This is not dependent on $x$, just on tree size. We define the score as:
+\[
+s(x) = 2^{-\ell(x) / c(\psi)}
+\]
+
+\begin{itemize}
+    \item For outliers, they will be isolated quickly, i.e. $\ell(x) \ll c(\psi) $, so $\frac{\ell(x)}{c(\psi)} \ll 1$, thus: $s(x) = 2^{\text{small}} \to $ close to 1
+    \item For normal points, they will be harder to isolate, i.e. $\ell(x) \approx c(\psi) $, so $s(x) \approx 0.5$
+    \item For very dense regions, they will be the hardest to isolate, i.e. $\ell(x) > c(\psi) $, so $s(x) \ll 0.5 \to$ close to 0
+\end{itemize}
+
+\textbf{Note: }$s(x)$ is a global, model-based outlier score.
+
+\textbf{How the expected path length $c(\psi)$ and the maximum depth $h_{\text{lim}}$ are computed?}
+
+We use properties of \textbf{Binary Search Trees (BSTs)}
+\begin{itemize}
+    \item Isolation Trees and BSTs are both binary trees
+    \item Both recursively split data into two parts
+    \item The path to isolate a point in an iTree is like an unsuccessful search in a BST (you reach a leaf but do not find the key)
+\end{itemize}
+
+We want to know the expected number of splits needed to isolate a point among $\psi$ data points, assuming completely random partitioning. This is mathematically equivalent to: The expected length of an unsuccessful search in a Binary Search Tree (BST) built from $\psi$ randomly inserted elements.
+
+The expected path length $\mathbb{E}[\ell(x)]$ for a point in a random BST with $\psi$ nodes (unsuccessful search) is:
+\[
+c(\psi) = 2H(\psi - 1) - \frac{2(\psi - 1)}{\psi}
+\]
+Where $H(n) = \sum_{i=1}^n \frac{1}{i}$ is the \textbf{harmonic} number. It has an approximation (for large $n$) as follows:
+\[
+H(n) \approx \text{ln}(n) + \gamma \qquad \gamma \approx 0.577
+\]
+
+Moreover, a perfectly balanced binary tree with $\psi$ elements has depth $log_2(\psi)$
+
+These formulae come from classical analysis of average-case behavior in binary search trees. 
+
+We borrow that to calculate our $c(\psi)$ and $h_{\text{lim}}$
+
+
+\minititle{Problem: Incomplete Isolation}
+
+In an isolation tree \( T \), each node \( v \) stores a subset \( v.S \subseteq X \) of the data.  
+A point \( x \in X \) is considered isolated when it reaches a leaf node \( v \) with \( v.S = \{x\} \).
+
+However, not all trees fully isolate every point because:
+\begin{itemize}
+  \item Tree growth may stop early due to the depth limit \( h_{\text{lim}} \)
+  \item This results in leaf nodes \( v \) where \( |v.S| > 1 \)
+\end{itemize}
+
+In such cases, we don't know the full number of splits needed to isolate \( x \).
+
+\minititle{Solution: Approximating Path Length \(\ell_T(x)\)}
+
+Let \( v \) be the leaf node reached by \( x \), and let \( d \) be its depth in the tree.  
+Then define:
+
+\begin{itemize}
+  \item If \( |v.S| = 1 \):\quad \( \ell_T(x) = d \)
+  \item If \( |v.S| > 1 \):\quad \( \ell_T(x) = d + c(|v.S|) \)
+\end{itemize}
+
+Here, \( c(|v.S|) \) is the expected path length in a random isolation tree of size \( |v.S| \).
+
+This accounts for the average number of additional splits that would be required to isolate \( x \) if the tree had continued to grow.
+
+\minititle{Very Simple Example (1D)}
+Consider $X=\set{1,2,3,4,5,6,7,8,9,100}$, $\psi=6$ hence $c(\psi)=2.9$, and $|\mathcal{F}|=3$
+
+$T_1: \set{1,2,3,4,5,100}$
+\begin{verbatim}
+                 {1,2,3,4,5,100}, split=50
+                    /             \
+         {1,2,3,4,5}, split=3     {100}
+              /       \
+     {1,2}, split=1.5   {3,4,5}, split=4
+        /     \            /       \
+     {1}     {2}        {3}     {4,5}, split=4.5
+                                          /     \
+                                       {4}     {5}
+\end{verbatim}
+
+
+$T_2: \set{2,4,5,8,9,100}$
+
+\begin{verbatim}
+                     {2,4,5,8,9,100}, split=9
+                   /                    \
+        {2,4,5,8}, split=4           {9,100}, split=70
+           /         \                  /        \
+        {2}       {4,5,8}, split=6     {9}      {100}
+                      /    \
+             {4,5}, split=4.5
+                /       \
+             {4}       {5}
+\end{verbatim}
+
+$T_3: \set{1,3,4,7,9,100}$
+
+\begin{verbatim}
+                      {1,3,4,7,9,100}, split=80
+                     /                      \
+        {1,3,4,7,9}, split=4              {100}
+            /             \
+     {1,3}, split=2      {4,7,9}, split=8
+        /      \             /       \
+     {1}      {3}     {4,7}, split=5  {9}
+                              /   \
+                           {4}   {7}
+\end{verbatim}
+
+Path lengths of data points in the three isolation trees:
+\begin{table}[h]
+\begin{tabular}{l c c}
+\toprule
+\textbf{Tree} & \textbf{Point} & \textbf{Depth (Path Length)} \\
+\midrule
+Tree 1 & 1   & 3 \\
+       & 2   & 3 \\
+       & 3   & 3 \\
+       & 4   & 4 \\
+       & 5   & 4 \\
+       & 100 & 1 \\
+\midrule
+Tree 2 & 2   & 2 \\
+       & 4   & 4 \\
+       & 5   & 4 \\
+       & 8   & 3 \\
+       & 9   & 2 \\
+       & 100 & 2 \\
+\midrule
+Tree 3 & 1   & 3 \\
+       & 3   & 3 \\
+       & 4   & 4 \\
+       & 7   & 4 \\
+       & 9   & 3 \\
+       & 100 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Average path lengths for data points appearing in multiple trees:
+\begin{table}[h]
+\begin{tabular}{c c}
+\toprule
+\textbf{Data Point} & \textbf{Average Path Length} \\
+\midrule
+1   & 3.0 \\
+2   & 2.5 \\
+3   & 3.0 \\
+4   & 4.0 \\
+5   & 4.0 \\
+9   & 2.5 \\
+100 & 1.33 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\[
+c(\psi) = 2 \cdot H(\psi - 1) - \frac{2(\psi - 1)}{\psi}
+\text{where } H(n) = \sum_{i=1}^n \frac{1}{i}
+\]
+
+\[
+\begin{aligned}
+c(6) &= 2 \cdot H(5) - \frac{2 \cdot 5}{6} \\
+     &= 2 \left(1 + \frac{1}{2} + \frac{1}{3} + \frac{1}{4} + \frac{1}{5} \right) - \frac{10}{6} \\
+     &= 2 \left(1 + 0.5 + 0.333 + 0.25 + 0.2 \right) - 1.\overline{6} \\
+     &= 2 \cdot 2.283 - 1.\overline{6} \\
+     &= 4.566 - 1.666... \\
+     &\approx 2.9
+\end{aligned}
+\]
+
+Isolation Forest scores:
+\begin{table}[h]
+\begin{tabular}{c c c}
+\toprule
+\textbf{Data Point} & \textbf{Average Path Length} & \textbf{Score} $s(x) = 2^{- \ell(x) / 2.9}$ \\
+\midrule
+1   & 3.0  & 0.50 \\
+2   & 2.5  & 0.56 \\
+3   & 3.0  & 0.50 \\
+4   & 4.0  & 0.41 \\
+5   & 4.0  & 0.41 \\
+9   & 2.5  & 0.56 \\
+100 & 1.33 & 0.73 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{Local Outlier Factor (LOF)}
+Given a dataset $X=\set{x_1, \cdots, x_n}$ and a distance function $d: X \times X \to \mathbb{R}_{\geq 0}$, we want to detect outliers based on how \textit{sparse} a point's local neighborhood is. 
+
+A point $x \in X$ is considered as \textbf{local outlier} iff its neighborhood is less dense than the neighborhoods of its neighbors.
+
+\mydef{k-Distance}{
+    Let $x \in X$. Sort all other points by distance to $x$: $y_1, y_2, \cdots, y_{n-1}$ such that $d(x,y_1) \leq d(x, y_2) \leq \cdots$. Then define $d_k(x)=d(x,y_k)$ as the distance from $x$ to its $k^{\text{th}}$ nearest neighbor.
+}
+
+\mydef{K-Neighborhood}{
+    Define $N_k(x) = \set{y \in X \mid d(x, y) \leq d_k(x)}$ as the set of points that lie within distance $d_k(x)$
+}
+
+Example: $X=\set{1,2,3,5,8,9}$, $d(x,y)=|x-y|$, point of interest is $x=3$.
+
+k-Distnaces: $d(3, 1) = 2, d(3, 2) = 1, d(3, 5) = 2, d(3,8) = 5, d(3,9) = 6$
+
+Sort data points by distance to $x=3$: $\set{2(1), 1(2), 5(2), 8(5), 9(6)}$
+
+For $k=2$, we can compute $d_k(x) = d_2(3) = 2$
+
+K-Neighborhood: $N_2(3) = \set{y \in X \mid d(x, y) \leq d_2(3)} = \set{1, 2, 5}$
+
+\textbf{Note: }although $k=2$, we got 3 neighbors, i.e. we may have $|N_k(x)| > k$ if multiple data points have same distance.
+
+\minititle{The Non-Symmetric Behavior}
+Consider $X = \set{1,2,3,10}$, at $k=2$ we want to compute $N_2(2)$ and $N_2(10)$
+
+Here are the distances from 2:
+\begin{tabular}{|c|c|} \hline
+    Point & Distance \\ \hline
+    1&1 \\ \hline
+    3&1 \\ \hline
+    10&8 \\ \hline
+\end{tabular}
+Sorting: $\set{1 (1), 3 (1), 10 (8)}$.
+
+$d_2(2) = 1 \qquad N_2(2) = \set{1,3}$
+
+Here are the distances from 10:
+\begin{tabular}{|c|c|} \hline
+    Point & Distance \\ \hline
+    1&9 \\ \hline
+    2&8 \\ \hline
+    3&7 \\ \hline
+\end{tabular}
+Sorting: $\set{3 (7), 2 (8), 1 (9)}$.
+
+$d_2(10) = 8 \qquad N_2(10) = \set{2,3}$
+
+\textbf{Notice }that $10 \notin N_2(2)$ but $2 \in N_2(10)$
+
+\minititle{Naive Local Density}
+\begin{itemize}
+    \item Find the k-nearest neighbors of point x. This gives us $N_k(x)$
+    \item For each neighbor $y \in N_k(x)$, compute the distance $d(x,y)$
+    \item Take the average of those distances
+    \item Take the inverse of that average
+\end{itemize}
+\[
+\text{density}_k(x) = \left( \frac{1}{|N_k(x)|} \sum_{y \in N_k(x)} d(x,y) \right)^{-1}
+\]
+\begin{itemize}
+    \item If $x$ is close to its neighbors, the average distance is small, inverse is large, high density
+    \item If $x$ is far from its neighbors, the average distance is large, inverse is small, low density
+\end{itemize}
+
+\textbf{Problems:}
+\begin{itemize}
+    \item Highly sensitive to small changes in distances
+    \item If neighbors are very close, denominator becomes very small, density explodes
+    \item Small difference in distance leads to huge variance in density
+\end{itemize}
+
+\minititle{Local Reachability Density (LRD)}
+We want to measure local density in a way that's robust to small distance differences, solving problems from the previous "inverse mean distance" approach.
+
+Instead of using raw distance $d(x,y)$, we use the \textbf{k-reachability distance}:
+\[
+\text{reach-dist}_k(x,y) = \text{max}(d_k(y), d(x,y))
+\]
+\begin{itemize}
+    \item $d(x,y)$: the actual distance between $x$ and $y$
+    \item $d_k(y)$: the k-distance of $y$, i.e. the distance from $y$ to its k-th nearest neighbor
+\end{itemize}
+This avoids overestimating density when points are very close just by chance.
+\[
+\text{density}_k(x) = \text{LRD}_k(x) = \left( \frac{1}{|N_k(x)|} \sum_{y \in N_k(x)} \text{reach-dist}_k(x,y) \right)^{-1}
+\]
+
+Given that, we can define the Local Outlier Factor (local outlier score):
+\[
+\text{LOF}_k(x) = \frac{1}{|N_k(x)|} \sum_{y \in N_k(x)} \frac{\text{LRD}_k(y)}{\text{LRD}_k(x)}
+\]
+\begin{itemize}
+    \item The formula computes the average ratio between the densities of $x$'s neighbors and $x$'s own density.
+    \item Measures how isolated $x$ is w.r.t. its neighborhood.
+    \item Relative measure of density.
+    \item Range: $[0, \infty]$
+    \item $\approx 1 \to$ $x$'s neighborhood has similar density to its neighbors
+    \item $< 1 \to$ $x$ is in a denser area than its neighborhoods
+    \item $>1 \to$ $x$ is in a sparser area than its neighbors $\to$ potential outlier
+\end{itemize}
+
+\minititle{Max and Min Reachability Distance in a Cluster}
+Assume cluster $C = \set{A, B, C, D}$ and $d_k(x,y) = \text{reach-dist}_k(x,y)$. We can define a max/min reachability distance in $C$ if we look at all pairs of distinct points in $C$, compute $d_k(x,y)$ for each, and pick the largest/smallest one.
+\[
+M_k(C) = \max_{x \neq y \in C}  d_k(x,y) \qquad m_k(C) = \min_{x \neq y \in C}  d_k(x,y)
+\]
+Example, $d_k(A, B) = 5,
+d_k(A, C) = 7,
+d_k(A, D) = 6,
+d_k(B, C) = 4,
+d_k(B, D) = 8,
+d_k(C, D) = 3
+$
+\[
+M_k(C) = 8 \qquad m_k(C) = 3
+\]
+
+\minititle{Relative k-reachability distance spread}
+We can furthur define a measure that tells us how uniform the reachability distances are inside our cluster $C$ (measuring the spread of the cluster):
+\[
+\epsilon(C) = \frac{M_k(C)}{m_k(C)} - 1 \qquad \text{in our case }\frac{8}{3} - 1 \approx 1.67
+\]
+\begin{itemize}
+    \item If max and min are close, $\frac{M_k(C)}{m_k(C)} \approx 1$, $\epsilon(C) \approx 0$, meaning, tight and homogenous cluster
+\end{itemize}
+
+\minititle{Two-hop neighborhood}
+Remember, the k-neighborhood of a point $x$ is given by $N_k(x)$, given that, we can define $N_k^2(x)$ as the set of all points that are neighbors of any of $x$’s neighbors (it includes points two hops away in the k-nearest-neighborhood)
+\[
+N_k^2(x) = \set{z \in X \mid \exists y \in N_k(x): z \in N_k(y)}
+\]
+Example, assume query point $x$, and $N_2(x) = \set{A,B}$, assume that $N_2(A) = \set{x,C}, N_2(B)=\set{x,D}$ then $N_2^2(x) = \set{C,D}$
+ 
+
+\minititle{Bounding LRD}
+Remember, we defined local density as the inverse of the average of all distances:
+\[
+\text{LRD}_k(x) = \left( \frac{1}{|N_k(x)|} \sum_{y \in N_k(x)} d_k(x,y) \right)^{-1}
+\]
+But if all those neighbors are in the same cluster, then $d_k(x,y)$ is always going to be between $[m_k(C), M_k(C)]$
+
+\textbf{Two Edge Cases:}
+\begin{enumerate}
+    \item If all the neighbors are within the minimum distance then the average distance is $\frac{|N_k(x)| m_k(C)}{|N_k(x)|} = m_k(C)$ then $\text{LRD}_k(x) = \frac{1}{m_k(C)}$ (the highest possible density)
+    \item If all the neighbors are within the maximum distance then the average distance is $\frac{|N_k(x)| M_k(C)}{|N_k(x)|} = M_k(C)$ then $\text{LRD}_k(x) = \frac{1}{M_k(C)}$ (the lowest possible density)
+\end{enumerate}
+Which means:
+\[
+ \frac{1}{M_k(C)} \leq \text{LRD}_k(x) \leq  \frac{1}{m_k(C)}
+\]
+
+\minititle{Bounding $\text{LOF}_k(x)$}
+Remember, we defined the outlier factor for a point $x$ as the average of how dense each neighbor is compared to $x$
+\[
+\text{LOF}_k(x) = \frac{1}{|N_k(x)|} \sum_{y \in N_k(x)} \frac{\text{LRD}_k(y)}{\text{LRD}_k(x)}
+\]
+We assume the following:
+\begin{itemize}
+    \item $x \in C$ (query point is in the cluster)
+    \item $N_k^2(x) \subseteq C$ (all neighbors and their neighbors are also in $C$)
+\end{itemize}
+Which means that:
+\[
+ \frac{1}{M_k(C)} \leq \text{LRD}_k(x),\text{LRD}_k(y)  \leq  \frac{1}{m_k(C)}
+\]
+
+If we look at the ratio $\frac{\text{LRD}_k(y)}{\text{LRD}_k(x)}$, we have two edge cases:
+
+First one:
+\begin{itemize}
+    \item $\text{LRD}_k(y) = \frac{1}{m_k(C)}$ (neighbor is extremely dense)
+    \item $\text{LRD}_k(x) = \frac{1}{M_k(C)}$ ($x$ is extremely sparse)
+    \[
+    \text{Then }\frac{\text{LRD}_k(y)}{\text{LRD}_k(x)} = \frac{1/m_k(C)}{1/M_k(C)} = \frac{M_k(C)}{m_k(C)} = \epsilon(C) + 1
+    \]
+\end{itemize}
+
+
+Second one:
+\begin{itemize}
+    \item $\text{LRD}_k(y) = \frac{1}{M_k(C)}$ (neighbor is extremely sparse)
+    \item $\text{LRD}_k(x) = \frac{1}{m_k(C)}$ ($x$ is extremely dense)
+    \[
+    \text{Then }\frac{\text{LRD}_k(y)}{\text{LRD}_k(x)} = \frac{1/M_k(C)}{1/m_k(C)} = \frac{m_k(C)}{M_k(C)} = \frac{1}{\epsilon(C) + 1} 
+    \]
+\end{itemize}
+Since $LOF_k(x)$ is an average of those ratios, it must lie between those extremes. So we conclude:
+\[
+\frac{1}{\epsilon(C) + 1}  \leq \text{LOF}_k(x) \leq \epsilon(C) + 1
+\]
+If the cluster is tight, $\epsilon(C) \approx 0$, $\text{LOF}_k(x) \approx 1$, then $x$ is similar to its neighbors (not an outlier)
+
+\minititle{Exercise - LOF (2D)}
+Consider Euclidean distance and $k=2$, calculate LOF for point D:
+\begin{tabular}{|c|c|c|} \hline
+    \textbf{Point} & \textbf{X} & \textbf{Y} \\ \hline  
+    A&0&1 \\ \hline 
+    B&1&1 \\ \hline 
+    C&1&0 \\\hline 
+    D&3&-1 \\ \hline
+\end{tabular}
+
+First, we calculate the 2-neighborhood:
+\[
+N_2(x) = \set{y \in X \mid d(x, y) \leq d_2(x)} \qquad \forall x \in X
+\]
+
+for $x = A$:
+\begin{align*}
+    d(A,B) &= \sqrt{(0-1)^2 + (1 - 1)^2} = \sqrt{1 + 0} = 1 \\
+    d(A,C) &= \sqrt{(0-1)^2 + (1 - 0)^2} = \sqrt{1 + 1} = \sqrt{2} \\
+    d(A,D) &= \sqrt{(0-3)^2 + (1 - (-1))^2} = \sqrt{9 + 4} = \sqrt{13}
+\end{align*}
+\begin{itemize}
+    \item Points sorted by distance: $\set{B (1), C (\sqrt{2}), D (\sqrt{13})}$
+    \item $d_2(A) = \sqrt{2}$
+    \item $N_2(A) = \set{y \in X \mid d(A, y) \leq \sqrt{2}} = \set{B,C}$
+\end{itemize}
+
+for $x = B$:
+\begin{align*}
+    d(B,A) &= \sqrt{(1-0)^2 + (1 - 1)^2} = \sqrt{1 + 0} = 1 \\
+    d(B,C) &= \sqrt{(1-1)^2 + (1 - 0)^2} = \sqrt{0 + 1} = 1 \\
+    d(B,D) &= \sqrt{(1-3)^2 + (1 - (-1))^2} = \sqrt{4 + 4} = \sqrt{8}
+\end{align*}
+
+\begin{itemize}
+    \item Points sorted by distance: $\set{A (1), C (1), D (\sqrt{8})}$
+    \item $d_2(B) = 1$
+    \item $N_2(B) = \set{y \in X \mid d(B, y) \leq 1} = \set{A,C}$
+\end{itemize}
+
+for $x = C$: 
+\begin{align*}
+    d(C,A) &= \sqrt{(1-0)^2 + (0 - 1)^2} = \sqrt{1 + 1} = \sqrt{2} \\
+    d(C,B) &= \sqrt{(1-1)^2 + (0 - 1)^2} = \sqrt{0 + 1} = 1 \\
+    d(C,D) &= \sqrt{(1-3)^2 + (0 - (-1))^2} = \sqrt{4 + 1} = \sqrt{5}
+\end{align*}
+\begin{itemize}
+    \item Points sorted by distance: $\set{B (1), A (\sqrt{2}), D (\sqrt{5})}$
+    \item $d_2(C) = \sqrt{2}$
+    \item $N_2(C) = \set{y \in X \mid d(C, y) \leq \sqrt{2}} = \set{B,A}$
+\end{itemize}
+
+For $x=D$:
+\begin{align*}
+    d(D,A) &= \sqrt{(3-0)^2 + (-1 - 1)^2} = \sqrt{9 + 4} = \sqrt{13} \\
+    d(D,B) &= \sqrt{(3-1)^2 + (-1 - 1)^2} = \sqrt{4 + 4} = \sqrt{8} \\
+    d(D,C) &= \sqrt{(3-1)^2 + (-1 - 0)^2} = \sqrt{4 + 1} = \sqrt{5}
+\end{align*}
+\begin{itemize}
+    \item Points sorted by distance: $\set{C (\sqrt{5}), B (\sqrt{8}), A (\sqrt{13})}$
+    \item $d_2(D) = \sqrt{8}$
+    \item $N_2(D) = \set{y \in X \mid d(D, y) \leq \sqrt{8}} = \set{C,B}$
+\end{itemize}
+
+
+Then we calculate k-reachability distances:
+
+For $x=A \qquad N_2(A) = \set{B,C}$, we calculate:
+\begin{align*}
+\text{reach-dist}_k(x,y) &= \text{max}(d_k(y), d(x,y)) \\
+\text{reach-dist}_2(A,B) &= \text{max}(d_2(B), d(A,B)) = \text{max}(1, 1) = 1 \\
+\text{reach-dist}_2(A,C) &= \text{max}(d_2(C), d(A,C)) = \text{max}(\sqrt{2}, \sqrt{2}) = \sqrt{2}
+\end{align*}
+
+For $x=B \qquad N_2(B) = \set{A,C}$, we calculate:
+\begin{align*}
+\text{reach-dist}_k(x,y) &= \text{max}(d_k(y), d(x,y)) \\
+\text{reach-dist}_2(B,A) &= \text{max}(d_2(A), d(B,A)) = \text{max}(\sqrt{2}, 1) = \sqrt{2} \\
+\text{reach-dist}_2(B,C) &= \text{max}(d_2(C), d(B,C)) = \text{max}(\sqrt{2}, 1) = \sqrt{2}
+\end{align*}
+
+For $x=C \qquad N_2(C) = \set{A,B}$, we calculate:
+\begin{align*}
+\text{reach-dist}_k(x,y) &= \text{max}(d_k(y), d(x,y)) \\
+\text{reach-dist}_2(C,A) &= \text{max}(d_2(A), d(C,A)) = \text{max}(\sqrt{2}, \sqrt{2}) = \sqrt{2} \\
+\text{reach-dist}_2(C,B) &= \text{max}(d_2(B), d(C,B)) = \text{max}(1, 1) = 1
+\end{align*}
+
+
+For $x=D \qquad N_2(D) = \set{C,B}$, we calculate:
+\begin{align*}
+\text{reach-dist}_k(x,y) &= \text{max}(d_k(y), d(x,y)) \\
+\text{reach-dist}_2(D,C) &= \text{max}(d_2(C), d(D,C)) = \text{max}(\sqrt{2}, \sqrt{5}) = \sqrt{5} \\
+\text{reach-dist}_2(D,B) &= \text{max}(d_2(B), d(D,B)) = \text{max}(1, \sqrt{8}) = \sqrt{8}
+\end{align*}
+
+
+Then we compute $\text{LRD}_k(x) \qquad \forall x \in X$ 
+
+for $x=A$:
+\begin{align*}
+\text{LRD}_2(x) &= \left( \frac{1}{|N_2(x)|} \sum_{y \in N_2(x)} \text{reach-dist}_2(x,y) \right)^{-1} \\
+\text{LRD}_2(A) &= \left( \frac{1}{|N_2(A)|} \sum_{y \in N_2(A)} \text{reach-dist}_2(A,y) \right)^{-1} \\
+\text{LRD}_2(A) &= \left( \frac{1}{2} (\text{reach-dist}_2(A,B) + \text{reach-dist}_2(A,C)) \right)^{-1} \\
+\text{LRD}_2(A) &= \left( \frac{1 + \sqrt{2}}{2}\right)^{-1} \approx 0.83
+\end{align*}
+
+for $x=B$:
+\begin{align*}
+\text{LRD}_2(x) &= \left( \frac{1}{|N_2(x)|} \sum_{y \in N_2(x)} \text{reach-dist}_2(x,y) \right)^{-1} \\
+\text{LRD}_2(B) &= \left( \frac{1}{|N_2(B)|} \sum_{y \in N_2(B)} \text{reach-dist}_2(B,y) \right)^{-1} \\
+\text{LRD}_2(B) &= \left( \frac{1}{2} (\text{reach-dist}_2(B,A) + \text{reach-dist}_2(B,C))  \right)^{-1} \\
+\text{LRD}_2(B) &= \left( \frac{2 \sqrt{2}}{2} \right)^{-1} = \sqrt{2}^{-1} \approx 0.71
+\end{align*}
+
+for $x=C$:
+\begin{align*}
+\text{LRD}_2(x) &= \left( \frac{1}{|N_2(x)|} \sum_{y \in N_2(x)} \text{reach-dist}_2(x,y) \right)^{-1}\\
+\text{LRD}_2(C) &= \left( \frac{1}{|N_2(C)|} \sum_{y \in N_2(C)} \text{reach-dist}_2(C,y) \right)^{-1}\\
+\text{LRD}_2(C) &= \left( \frac{1}{2} (\text{reach-dist}_2(C,A) + \text{reach-dist}_2(C,B)) \right)^{-1}\\
+\text{LRD}_2(C) &= \left( \frac{\sqrt{2} + 1}{2} \right)^{-1} \approx 0.83
+\end{align*}
+
+
+for $x=D$:
+\begin{align*}
+\text{LRD}_2(x) &= \left( \frac{1}{|N_2(x)|} \sum_{y \in N_2(x)} \text{reach-dist}_2(x,y) \right)^{-1} \\
+\text{LRD}_2(D) &= \left( \frac{1}{|N_2(D)|} \sum_{y \in N_2(D)} \text{reach-dist}_2(D,y) \right)^{-1} \\
+\text{LRD}_2(D) &= \left( \frac{1}{2} \left(\text{reach-dist}_2(D,C) + \text{reach-dist}_2(D,B)\right)  \right)^{-1} \\
+\text{LRD}_2(D) &= \left( \frac{\sqrt{5} + \sqrt{8}}{2}\right)^{-1} \approx 0.40
+\end{align*}
+
+Now we can compute $\text{LOF}_k(x)$ for $x=D, k=2$:
+\begin{align*}
+\text{LOF}_k(x) &= \frac{1}{|N_k(x)|} \sum_{y \in N_k(x)} \frac{\text{LRD}_k(y)}{\text{LRD}_k(x)} \\
+\text{LOF}_2(D) &= \frac{1}{|N_2(D)|} \sum_{y \in N_2(D)} \frac{\text{LRD}_2(y)}{\text{LRD}_2(D)} \\
+\text{LOF}_2(D) &= \frac{1}{2} \left(\frac{\text{LRD}_2(B)}{\text{LRD}_2(D)}  + \frac{\text{LRD}_2(C)}{\text{LRD}_2(D)} \right) \\
+\text{LOF}_2(D) &= \frac{1}{2} \left(\frac{0.71}{0.40}  + \frac{0.83}{0.40} \right) \approx 1.93
+\end{align*}
+
+\newpage
+\minititle{Potential Exercise Discussion}
+
+\textbf{Question 1}
+
+You are given the following:
+
+\begin{itemize}
+  \item Total data points: $n = 6$
+  \item Ground truth outliers: $O = \{x_2, x_5\}$, so $m = 2$
+  \item Model ranking: $[x_3,\ x_2,\ x_1,\ x_6,\ x_5,\ x_4]$
+\end{itemize}
+
+\textbf{Tasks:}
+\begin{enumerate}
+  \item Compute actual $P@k$ for $k = 1$ to $6$
+  \item Compute max possible $P@k$ for each $k$
+  \item Compute expected $P@k$ under random ranking
+  \item Compute adjusted $P@2$
+  \item Compute average precision (AP)
+  \item Compute expected AP and adjusted AP
+\end{enumerate}
+
+\vspace{1 em}
+\textbf{Question 2}
+
+Create Isolation Forest and give the model ranking. Assume data points $X=\{(1,1),(2,2),(3,1),(4,2),(5,1),(50,50)\}$, $|\mathcal{F}|=3$, and $\psi=4,\;c(4)\approx2.1$
+
+
 \end{document}
 
